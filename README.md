@@ -640,3 +640,4 @@ Something that has worked out well in the past is to keep the consoles of all th
 * One final reboot and the node should come up as master-0 or master-1 or master-2 at the prompt
 
 Deployments usually fail if the above three steps do not happen. Sometimes, a node might not boot to disk and be stuck in a PXE loop even when asked to boot to hard disk by the installer or it might be stuck at the OS selection menu when asked to boot to disk. These among several other issues have been seen with hardware in the past and it is worth keeping an eye on the console and intervening if needed for a successful deploy. This is beyond the scope of the playbook or for that matter even the installer.
+
