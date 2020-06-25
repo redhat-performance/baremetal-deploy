@@ -29,33 +29,56 @@
         name: podman
         state: present
       become: true
+      when: containerize_rebuild_provisioner
 
     - name: Get Badfish pod image
       podman_image:
         name: "{{ badfish_pod_image }}"
         pull: yes
         force: yes
+      when: containerize_rebuild_provisioner
 
     - name: Build the hammercli image
       shell: podman build --build-arg foreman_url={{ foreman_url }} -t hammercli .
       args:
         chdir: "{{ role_path}}/files/"
+      when: containerize_rebuild_provisioner
+
+    - name: update host to install new os (scale lab) in container
+      shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
+      when: lab_name == "scale" and containerize_rebuild_provisioner
+
+    - name: update host to install new os (alias lab) in container
+      shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium '{{ os_install }}' --partition-table 'ALIAS-Partition' --overwrite 1
+      when: lab_name == "alias" and containerize_rebuild_provisioner
 
     - name: update host to install new os (scale lab)
-      shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
-      when: lab_name == "scale"
+      shell: hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
+      when: lab_name == "scale" and not containerize_rebuild_provisioner
 
     - name: update host to install new os (alias lab)
-      shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium '{{ os_install }}' --partition-table 'ALIAS-Partition' --overwrite 1
-      when: lab_name == "alias"
+      shell: hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium '{{ os_install }}' --partition-table 'ALIAS-Partition' --overwrite 1
+      when: lab_name == "alias" and not containerize_rebuild_provisioner
+
+    - name: Set provisioner host to foreman boot order (in container)
+      shell: |
+        {{ badfish_cmd_container }}{{ provisioner_hostname }} -t foreman
+      when: containerize_rebuild_provisioner
+
+    - name: Set provisioner host to reboot (in container)
+      shell: |
+        {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-cycle
+      when: containerize_rebuild_provisioner
 
     - name: Set provisioner host to foreman boot order
       shell: |
         {{ badfish_cmd }}{{ provisioner_hostname }} -t foreman
+      when: not containerize_rebuild_provisioner
 
     - name: Set provisioner host to reboot
       shell: |
         {{ badfish_cmd }}{{ provisioner_hostname }} --power-cycle
+      when: not containerize_rebuild_provisioner
 
     - name: wait for 420 seconds before checking for provisioner
       wait_for:
