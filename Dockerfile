@@ -14,12 +14,8 @@ RUN pip3 install jmespath
 # Hammercli
 # epel-release is needed, but was installed above.
 RUN yum install -y https://yum.theforeman.org/releases/2.1/el8/x86_64/foreman-release.rpm
-#RUN yum install -y centos-release-scl-rh
-#RUN yum install -y @ruby:2.5
-
-#RUN yum install -y rubygem-rake --nodocs
-
-#RUN git 
+RUN yum install -y https://yum.theforeman.org/releases/2.1/el8/x86_64/rubygem-hammer_cli-2.1.0-1.el8.noarch.rpm 
+RUN yum install -y http://yum.theforeman.org/releases/2.1/el8/x86_64/rubygem-hammer_cli_foreman-2.1.0-2.el8.noarch.rpm
 
 RUN yum install -y rubygem-hammer_cli \
 	rubygem-hammer_cli_foreman
@@ -27,7 +23,8 @@ RUN yum install -y rubygem-hammer_cli \
 RUN pip3 install j2cli
 
 #COPY ansible-ipi-install /root/ansible-ipi-install
-RUN git clone https://github.com/redhat-performance/JetSki.git /root/JetSki
+ADD https://api.github.com/repos/jaredoconnell/JetSki/git/refs/heads/containerized version.json
+RUN git clone --single-branch --branch containerized https://github.com/jaredoconnell/JetSki.git /root/JetSki
 
 #CMD ansible-playbook /install/ansible-ipi-install/prep_kni_user.yml
 
