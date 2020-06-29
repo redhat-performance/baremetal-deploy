@@ -53,7 +53,6 @@
       when: lab_name == "alias" and containerize_rebuild_provisioner
 
     - name: setup hammercli if not in container
-      chdir: "/root/"
       shell: |
         hammer --fetch-ca-cert {{ foreman_url }}
         j2 /root/foreman.yml.j2 > /etc/hammer/cli.modules.d/foreman.yml
