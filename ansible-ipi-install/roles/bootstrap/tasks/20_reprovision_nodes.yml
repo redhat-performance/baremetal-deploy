@@ -59,11 +59,11 @@
       when: not containerize_rebuild_provisioner
 
     - name: update host to install new os (scale lab)
-      shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -h {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
+      shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
       when: lab_name == "scale" and not containerize_rebuild_provisioner
 
     - name: update host to install new os (alias lab)
-      shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -h {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium '{{ os_install }}' --partition-table 'ALIAS-Partition' --overwrite 1
+      shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium '{{ os_install }}' --partition-table 'ALIAS-Partition' --overwrite 1
       when: lab_name == "alias" and not containerize_rebuild_provisioner
 
     - name: Set provisioner host to foreman boot order (in container)
