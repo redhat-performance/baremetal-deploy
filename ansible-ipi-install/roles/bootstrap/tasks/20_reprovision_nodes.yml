@@ -24,7 +24,7 @@
 
 - name: Determine if containers should be used
   set_fact:
-    run_in_container: lookup('env', 'IN_CONTAINER') != 'true'
+    run_in_container: lookup('env', 'DISABLE_PODMAN') != 'true'
 
 - name: Perform OS install if needed
   block:
