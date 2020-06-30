@@ -22,7 +22,6 @@ RUN yum install -y rubygem-hammer_cli \
 
 RUN pip3 install j2cli
 
-#COPY ansible-ipi-install /root/ansible-ipi-install
 # Done with hammercli. Next badfish
 # Source: https://github.com/redhat-performance/badfish/blob/master/Dockerfile
 
@@ -34,9 +33,7 @@ RUN python3 setup.py build
 RUN python3 setup.py install
 
 ADD https://api.github.com/repos/jaredoconnell/JetSki/git/refs/heads/containerized version.json
-RUN git clone --single-branch --branch containerized https://github.com/jaredoconnell/JetSki.git /root/JetSki
-
-#CMD ansible-playbook /install/ansible-ipi-install/prep_kni_user.yml
+RUN git clone --single-branch --branch master https://github.com/redhat-performance/JetSki.git /root/JetSki
 
 # Done. Now run it.
 ENTRYPOINT ansible-playbook -vvv -i $ansible_dir/inventory/jetski/hosts $ansible_dir/playbook-jetski.yml
