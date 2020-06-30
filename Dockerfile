@@ -2,6 +2,7 @@
 FROM centos:8
 
 ENV ansible_dir=/root/JetSki/ansible-ipi-install
+ENV IN_CONTAINER=true
 
 RUN yum -y install python3 --nodocs
 RUN pip3 install ansible

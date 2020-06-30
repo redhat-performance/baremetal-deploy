@@ -26,9 +26,6 @@ pullsecret: ''
 # and have it be https://foreman.example.com for example. If you are having trouble figuring out this variable please look for the 
 # pastebins under the "Modifying the ansible-ipi-install/group_vars/all.yml file" section in README.md
 foreman_url: https://foreman.example.com/
-# The automation automatically rebuilds provisioner node to RHEL 8.1 if not already RHEL 8.1 (see foreman_url variable)
-# However you can also force a reprovsioning of the provisioner node for redeployment scenarios
-rebuild_provisioner: true
 # Whether the installation of the OS on the provisioner should be done within its own container.
 # By setting this to false, ansible will install the necessary packages to do the installation on the current
 # environment. This is recommended if ansible is running within a container.
