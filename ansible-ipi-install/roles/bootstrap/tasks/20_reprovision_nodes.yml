@@ -25,10 +25,6 @@
 - name: Determine if containers should be used
   set_fact:
     run_in_container: "{{ lookup('env', 'DISABLE_PODMAN') != 'true' }}"
-- debug:
-    msg:
-      - "Environment var: {{ lookup('env', 'DISABLE_PODMAN') }}"
-      - "run_in_container var: {{ run_in_container }}"
 
 - name: Perform OS install if needed
   block:
