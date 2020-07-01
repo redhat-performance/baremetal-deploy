@@ -568,7 +568,7 @@ Alternatively, if the container is on an image repository, you can pull it from 
 
 ### Configuration
 
-The run script mentioned below uses the local computer's copy of the file `ansible-ipi-install/group-vars/all.yml`
+The run script mentioned below uses the local computer's copy of the file `ansible-ipi-install/group-vars/all.yml` and `ansible-ipi-install/inventory/jetski/hosts`
 You must configure that file as requested in the above section. [Containerized JetSki](#containerized-jetski)
 
 ### Running
