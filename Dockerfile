@@ -1,4 +1,3 @@
-#FROM registry.access.redhat.com/ubi8/ubi
 FROM centos:8
 
 ENV ansible_dir=/root/JetSki/ansible-ipi-install
