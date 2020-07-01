@@ -563,7 +563,7 @@ The convenience script command to build it is:
 
 If that does not work for you, you can build the image manually using the Dockerfile in the project root directory.
 
-Alternatively, if te container is on an image repository, you can pull it from there.
+Alternatively, if the container is on an image repository, you can pull it from there.
 
 
 ### Configuration
