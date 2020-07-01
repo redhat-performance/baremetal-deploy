@@ -36,6 +36,6 @@ ADD https://api.github.com/repos/redhat-performance/JetSki/git/refs/heads/contai
 RUN git clone --single-branch --branch master https://github.com/redhat-performance/JetSki.git /root/JetSki
 
 # Done. Now run it.
-ENTRYPOINT ansible-playbook -vvv -i $ansible_dir/inventory/jetski/hosts $ansible_dir/playbook-jetski.yml
+ENTRYPOINT ansible-playbook -i $ansible_dir/inventory/jetski/hosts $ansible_dir/playbook-jetski.yml
 #ENTRYPOINT /bin/bash
 
