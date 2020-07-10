@@ -30,7 +30,7 @@ RUN git clone https://github.com/redhat-performance/badfish /root/badfish
 WORKDIR /root/badfish
 RUN pip3 install -r requirements.txt
 
-ADD https://api.github.com/repos/redhat-performance/JetSki/git/refs/heads/containerized version.json
+ADD https://api.github.com/repos/redhat-performance/JetSki/git/refs/heads/master /root/JetSki-version.json
 RUN git clone --single-branch --branch master https://github.com/redhat-performance/JetSki.git /root/JetSki
 
 # Done. Now run it.
