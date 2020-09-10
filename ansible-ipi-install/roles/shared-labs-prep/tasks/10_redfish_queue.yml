@@ -13,4 +13,4 @@
   rescue:
     - name: Rescue - Reset iDRAC - {{ item }}
       shell: |
-        sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item }} "racadm racreset"
+        sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item }} "racadm racreset soft -f"
