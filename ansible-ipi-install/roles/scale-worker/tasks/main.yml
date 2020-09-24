@@ -12,11 +12,18 @@
 - debug:
     msg: Scaling worker starts from - "{{ scale_worker_index }}" to "{{ scale_worker_count }}"
 
+- name: Approve CSRs
+  poll: 0
+  async: 20000
+  shell: "bash /home/{{ ansible_user }}/approve_csr.bash {{ worker_count }}"
+  register: approve_csr_result
+
+- name: Approve CSRs Debug
+  debug:
+    var: approve_csr_result
+
 - include_tasks: 10_bmc_secrets.yml
 
 - include_tasks: 20_create_bmh.yml
 
 - include_tasks: 30_scale_machinesets.yml
-
-- name: Approve CSRs
-  shell: "bash /home/{{ ansible_user }}/approve_csr.bash {{ scale_worker_count }}"
