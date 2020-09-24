@@ -10,6 +10,8 @@
   with_items:
     - { name: ocpinv_file, path: ocpinv.json }
     - { name: ocp_node_inv_path, path: ocpnodeinv.json }
+    - { name: ocp_deployed_node_inv_path, path: ocpdeployednodeinv.json }
+    - { name: ocp_nondeployed_node_inv_path, path: ocpnondeployednodeinv.json }
 
 - name: check ocpinv file available
   stat:
@@ -58,6 +60,23 @@
     dest: "{{ ocp_node_inv_path }}"
     content: "{{ ocp_node_content | to_nice_json }}"
 
+- name: dump deploying master nodes file
+  copy:
+    dest: "/tmp/metadata.txt"
+    content: "{{ lookup('template', 'node_inv.j2') | to_nice_json  }}"
+  vars:
+    query: nodes[0:3]
+    node: master
+    
+- name: read env file
+  slurp:
+    src: "/tmp/metadata.txt"
+  register: master_content
+
+- name: set inventory fact
+  set_fact:
+    deploying_master_nodes_content: "{{ master_content['content'] | b64decode | from_json }}"
+
 - name: set fact for master mgmt
   set_fact:
     master_mgmts:  "{{ ocp_node_content| json_query('nodes[0:3].pm_addr')}}"
@@ -76,6 +95,24 @@
 - name: Set worker index
   set_fact:
     worker_index: "{{ worker_count | int + 3 }}"
+
+- name: dump deploying worker nodes file
+  copy:
+    dest: "/tmp/metadata.txt"
+    content: "{{ lookup('template', 'node_inv.j2') | to_nice_json  }}"
+  vars:
+    query: nodes[3:{{worker_index}}]
+    node: worker
+    ip_nth: 3  # Already assigned 3 master IPs
+
+- name: read env file
+  slurp:
+    src: "/tmp/metadata.txt"
+  register: worker_content
+
+- name: set inventory fact
+  set_fact:
+    deploying_worker_nodes_content: "{{ worker_content['content'] | b64decode | from_json }}"
 
 - name: set fact for worker mgmt
   set_fact:
@@ -131,3 +168,26 @@
     worker_prov_macs:  "{{ ocp_node_content| json_query(query)}}"
   vars:
     query: nodes[3:{{worker_index}}].mac[1]
+
+- name: dump non deploying worker nodes file
+  copy:
+    dest: "/tmp/metadata.txt"
+    content: "{{ lookup('template', 'node_inv.j2') | to_nice_json  }}"
+  vars:
+    query: nodes[{{worker_index}}:]
+    node: worker
+    ip_nth: "{{worker_index|int}}"
+    wrkr_index: "{{worker_count|int}}"
+
+- name: read env file
+  slurp:
+    src: "/tmp/metadata.txt"
+  register: nd_worker_content
+
+- name: set inventory fact
+  set_fact:
+    nondeploying_worker_nodes_content: "{{ nd_worker_content['content'] | b64decode | from_json }}"
+
+- name: set ocp_deploying_node_content
+  set_fact:
+    ocp_deploying_node_content: "{{ deploying_master_nodes_content | combine({'nodes': deploying_master_nodes_content.nodes|union(deploying_worker_nodes_content.nodes)}, recursive=True) }}"

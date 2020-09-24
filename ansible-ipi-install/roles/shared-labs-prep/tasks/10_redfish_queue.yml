@@ -1,16 +1,14 @@
-- name: Redfish job queue
+- name: Redfish job queue status
   block:
-    - name: Clear redfish job queues - {{ item }}
-      shell:
-        chdir: "{{ badfish_tempdir.path }}"
-        cmd: |
-          source {{ badfish_venv }}/bin/activate
-          {{ badfish_cmd }}{{ item }} --clear-jobs --force
-      register: clear_jobs
-      until: clear_jobs is succeeded
-      retries: 3
-      delay: 30
+    - name: Check jobqueue_requests
+      async_status:
+        jid: "{{ item.ansible_job_id }}"      
+      register: jobqueue_results
+      until: jobqueue_results.finished
+      retries: 20
+      delay: 1
+      
   rescue:
-    - name: Rescue - Reset iDRAC - {{ item }}
+    - name: Rescue - Reset iDRAC - {{ item.item }}
       shell: |
-        sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item }} "racadm racreset soft -f"
+        sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item.item }} "racadm racreset soft -f"

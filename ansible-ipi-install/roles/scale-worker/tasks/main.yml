@@ -1,0 +1,22 @@
+- include_tasks: 01_dns_update.yml
+
+- name: Create directory
+  file:
+    state: directory
+    path: "{{ scaling_dir }}/"
+
+- name: scale worker index
+  set_fact: 
+    scale_worker_index: "{{ current_worker_count | int }}"
+
+- debug:
+    msg: Scaling worker starts from - "{{ scale_worker_index }}" to "{{ scale_worker_count }}"
+
+- include_tasks: 10_bmc_secrets.yml
+
+- include_tasks: 20_create_bmh.yml
+
+- include_tasks: 30_scale_machinesets.yml
+
+- name: Approve CSRs
+  shell: "bash /home/{{ ansible_user }}/approve_csr.bash {{ scale_worker_count }}"

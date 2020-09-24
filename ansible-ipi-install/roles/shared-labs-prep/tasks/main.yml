@@ -142,10 +142,23 @@
   tags:
     - bootorder
 
-- include_tasks: 10_redfish_queue.yml
+- name: Clear redfish job queues
+  shell:
+    chdir: "{{ badfish_tempdir.path }}"
+    cmd: |
+      source {{ badfish_venv }}/bin/activate
+      {{ badfish_cmd }}{{ item }} --clear-jobs --force
   with_items:
     - "{{ master_fqdns }}"
     - "{{ worker_fqdns }}"
+  tags:  
+    - bootorder
+  register: jobqueue_requests
+  async: 3600
+  poll: 0
+
+- include_tasks: 10_redfish_queue.yml
+  with_items: "{{ jobqueue_requests.results }}"
   tags:  
     - bootorder
 
@@ -174,12 +187,18 @@
   with_items:
     - "{{ master_fqdns }}"
     - "{{ worker_fqdns }}"
-  register: boot_order
-  until: boot_order is succeeded
-  retries: 3
-  delay: 60
+  register: boot_order_requests
   tags:
     - bootorder
+  async: 3600
+  poll: 0
+
+- include_tasks: 20_boot_order.yml
+  with_items: "{{ boot_order_requests.results }}"
+  tags:  
+    - bootorder    
+
+#TODO: Add wait for node reboot
 
 - name: Set SELinux permissive
   selinux:
