@@ -51,6 +51,10 @@
   set_fact:
     ocp_deployed_node_content: "{{ deploy_inv['content'] | b64decode | from_json }}"
 
+- name: Set default deployed worker count
+  set_fact:
+    deployed_worker_fqdns: []
+
 - name: Set already deployed worker count
   set_fact:
     deployed_worker_fqdns: "{{ deployed_worker_node | default([]) + [ item.pm_addr ] }}"
