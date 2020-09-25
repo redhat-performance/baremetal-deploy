@@ -56,7 +56,7 @@
 
 - name: Set already deployed worker count
   set_fact:
-    deployed_worker_fqdns: "{{ deployed_worker_node | default([]) + [ item.pm_addr ] }}"
+    deployed_worker_fqdns: "{{ deployed_worker_fqdns | default([]) + [ item.pm_addr ] }}"
   when: "'worker' in item.host_name"
   loop: "{{ ocp_deployed_node_content.nodes }}"
   
