@@ -94,7 +94,8 @@
 - name: Fail when required number of worker nodes cannot be scaled
   fail:
     msg: Required number of nodes are not available to scale workers
-  when: ( scale_worker_node.nodes | length + current_worker_count | int ) != scale_worker_count | int
+  when: ( ( scale_worker_node.nodes | length + current_worker_count | int ) != scale_worker_count | int ) or
+        ( scale_worker_count | int <= current_worker_count | int )    # If scale request is lesser than or equal current count
 
 - name: Set worker FQDNs
   set_fact:
