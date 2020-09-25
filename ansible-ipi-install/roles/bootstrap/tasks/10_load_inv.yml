@@ -9,7 +9,6 @@
     "{{ item.name }}": "{{ playbook_dir +  '/' + item.path if inventory_hostname == 'localhost' else inventory_tempdir.path + '/' + item.path }}"
   with_items:
     - { name: ocpinv_file, path: ocpinv.json }
-    - { name: ocp_node_inv_path, path: ocpnodeinv.json }
     - { name: ocp_deployed_node_inv_path, path: ocpdeployednodeinv.json }
     - { name: ocp_nondeployed_node_inv_path, path: ocpnondeployednodeinv.json }
 
@@ -54,11 +53,6 @@
           ocp_node_content: |
               {% set a=ocpinv_content.pop('nodes') %}
               {{ ocpinv_content | combine({'nodes': a|difference([a[0]])}, recursive=True) }}
-
-- name: create ocpnodeinv.json file
-  copy:
-    dest: "{{ ocp_node_inv_path }}"
-    content: "{{ ocp_node_content | to_nice_json }}"
 
 - name: dump deploying master nodes file
   copy:
