@@ -15,7 +15,7 @@
 - name: Approve CSRs
   poll: 0
   async: 20000
-  shell: "bash /home/{{ ansible_user }}/approve_csr.bash {{ worker_count }}"
+  shell: "bash /home/{{ ansible_user }}/approve_csr.bash {{ scale_worker_count }}"
   register: approve_csr_result
 
 - name: Approve CSRs Debug
