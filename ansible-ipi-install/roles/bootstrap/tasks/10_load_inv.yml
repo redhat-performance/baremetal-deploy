@@ -45,22 +45,22 @@
         src: "{{ ocpinv_file }}"
       register: invfile
 
-    - name: set golden inventory fact
+    - name: set User inventory fact
       set_fact:
-        ocpinv_gold_content: "{{ invfile['content'] | b64decode | from_json }}"
+        ocpinv_user_content: "{{ invfile['content'] | b64decode | from_json }}"
 
     - name: Get node list
       set_fact:
-          new_inv: "{{ ocpinv_content | json_query('nodes[*].pm_addr')  }}"
-          gold_inv: "{{ ocpinv_gold_content | json_query('nodes[*].pm_addr')  }}"
+          gold_inv: "{{ ocpinv_content | json_query('nodes[*].pm_addr')  }}"        # QUADS inventory
+          user_inv: "{{ ocpinv_user_content | json_query('nodes[*].pm_addr')  }}"   # Local user content
 
     - name: verify
       set_fact:
-          compare_inv: "{{ gold_inv | difference(new_inv) }}"
+          compare_inv: "{{ user_inv | difference(gold_inv) }}"
 
     - name: Fail when there is an inventory conflicts
       fail:
-        msg: Existing Golden inventory - ocpinv.json is not matching with QUADS inventory for {{ cloud_name }}, please remove existing ocpinv.json if deploying a new cloud. 
+        msg: Existing User inventory - ocpinv.json is not matching with QUADS inventory for {{ cloud_name }}, please remove existing ocpinv.json if deploying a new cloud. 
       when: compare_inv | length != 0      
   when: st.stat.exists
 
