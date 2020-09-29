@@ -56,7 +56,7 @@
 
     - name: verify
       set_fact:
-          compare_inv: "{{ new_inv | symmetric_difference(gold_inv) }}"
+          compare_inv: "{{ gold_inv | difference(new_inv) }}"
 
     - name: Fail when there is an inventory conflicts
       fail:
