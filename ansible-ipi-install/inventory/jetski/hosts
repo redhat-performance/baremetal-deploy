@@ -125,6 +125,12 @@ network_type="OVNKubernetes"
 # Default value is False. 
 #disable_bmc_certificate_verification=True
 
+# (Optional) Disable use of Redfish protocol to administer hosts; use IPMI instead.
+# This may be needed if host firmware does not correctly support our use of
+# Redfish.
+# Default value is False.
+#disable_redfish_administration=True
+
 # (Optional) OpenShift 4.6+, Set Root Device Hints to choose the proper device to install operating system on OpenShift nodes.
 # root device hint options include: ['deviceName','hctl','model','vendor','serialNumber','minSizeGigabytes','wwn','rotational']
 # Root Device Hint values are case sensitive. If incorrect case given, entry omitted from install-config.yaml

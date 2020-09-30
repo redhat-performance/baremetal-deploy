@@ -138,6 +138,12 @@ pullsecret=""
 # Default value is False. 
 #disable_bmc_certificate_verification=True
 
+# (Optional) Disable use of Redfish protocol to administer hosts; use IPMI instead.
+# This may be needed if host firmware does not correctly support our use of
+# Redfish.
+# Default value is False.
+#disable_redfish_administration=True
+
 # Master nodes
 # The hardware_profile is used by the baremetal operator to match the hardware discovered on the host
 # See https://github.com/metal3-io/baremetal-operator/blob/master/docs/api.md#baremetalhost-status

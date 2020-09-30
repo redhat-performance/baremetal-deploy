@@ -61,10 +61,10 @@ platform:
       - name: {{ hostvars[host]['inventory_hostname'] }}
         role: {{ hostvars[host]['role'] }}
         bmc:
-{% if groups['dell_hosts_redfish'] is defined and host in groups['dell_hosts_redfish'] and ((release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int >= 5))) %}
+{% if (disable_redfish_administration is not defined or not disable_redfish_administration|bool) and groups['dell_hosts_redfish'] is defined and host in groups['dell_hosts_redfish'] and ((release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int >= 5))) %}
           address: redfish://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/System.Embedded.1
           disableCertificateVerification: {{ disable_bmc_certificate_verification }}
-{% elif groups['hp_hosts_redfish'] is defined and host in groups['hp_hosts_redfish'] and ((release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int >= 5))) %}
+{% elif (disable_redfish_administration is not defined or not disable_redfish_administration|bool) and groups['hp_hosts_redfish'] is defined and host in groups['hp_hosts_redfish'] and ((release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int >= 5))) %}
           address: redfish://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/1
           disableCertificateVerification: {{ disable_bmc_certificate_verification }}
 {% else %}
@@ -92,10 +92,10 @@ platform:
       - name: {{ hostvars[host]['inventory_hostname'] }}
         role: {{ hostvars[host]['role'] }}
         bmc:
-{% if groups['dell_hosts_redfish'] is defined and host in groups['dell_hosts_redfish'] %}
+{% if (disable_redfish_administration is not defined or not disable_redfish_administration|bool) and groups['dell_hosts_redfish'] is defined and host in groups['dell_hosts_redfish'] %}
           address: redfish://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/System.Embedded.1
           disableCertificateVerification: {{ disable_bmc_certificate_verification }}
-{% elif groups['hp_hosts_redfish'] is defined and host in groups['hp_hosts_redfish'] %}
+{% elif (disable_redfish_administration is not defined or not disable_redfish_administration|bool) and  groups['hp_hosts_redfish'] is defined and host in groups['hp_hosts_redfish'] %}
           address: redfish://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/1
           disableCertificateVerification: {{ disable_bmc_certificate_verification }}
 {% else %}
