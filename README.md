@@ -12,6 +12,7 @@ _**Table of Contents**_
 - [Running the Ansible Playbook](#running-the-ansible-playbook)
 - [Containerized JetSki](#containerized-jetski)
 - [Versions Tested](#versions-tested)
+- [Contributing](#contributing)
 - [Limitations](#limitations)
 - [Additional Material/Advanced Usage](#additional-materialadvanced-usage)
 - [Troubleshooting](#troubleshooting)
@@ -240,7 +241,6 @@ The tree structure is shown below:
         │   └── nmcli.py -> ../../node-prep/library/nmcli.py
         ├── tasks
         │   ├── 10_redfish_queue.yml
-        │   ├── 20_boot_order.yml
         │   └── main.yml
         ├── templates
         │   ├── ocp4-lab.dnsmasq.conf.j2
@@ -725,7 +725,10 @@ The convenience script command run the image is:
 You may manually run it with Docker or Podman, as long as you pass in the applicable configuration files.
 
 ## Versions Tested
-Deployment of OCP 4.3, 4.4 and 4.5 has been tested with this playbook.
+Deployment of OCP 4.3, 4.4, 4.5 and 4.6 has been tested with this playbook.
+
+## Contributing
+We follow the standard GitHub process for PRs. One thing you need to note is that if your changes affect the `node-prep` or `installer` roles, the PR needs to be submitted against [baremetal-deploy](https://github.com/openshift-kni/baremetal-deploy) as JetSki uses those roles as is by rebasing, for maintainability.
 
 ## Limitations
 * Designed for and tested only on Red Hat's Scale and ALIAS labs
