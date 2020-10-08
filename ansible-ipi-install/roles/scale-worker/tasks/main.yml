@@ -12,6 +12,15 @@
 - debug:
     msg: Scaling worker starts from - "{{ scale_worker_index }}" to "{{ scale_worker_count }}"
 
+- name: Copy the approve_csr script from the local machine to the remote server
+  copy:
+    src: ./approve_csr.bash
+    dest: "/home/{{ ansible_user }}/"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0755
+  become: yes
+  
 - name: Approve CSRs
   poll: 0
   async: 20000
