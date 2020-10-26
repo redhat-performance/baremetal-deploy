@@ -1,22 +1,7 @@
 - name: Create BareMetalHost definition file for new worker
   copy:
     dest: "{{ scaling_dir }}/worker-{{ ansible_loop.index0 + scale_worker_index | int }}-bmh.yaml"
-    content: |
-      apiVersion: metal3.io/v1alpha1
-      kind: BareMetalHost
-      metadata:
-        name: worker-{{ ansible_loop.index0 + scale_worker_index | int }}
-        namespace: openshift-machine-api
-      spec:
-        online: true
-        bmc:
-          address: "ipmi://{{ item.pm_addr }}:623"
-          credentialsName: "worker-{{ ansible_loop.index0 + scale_worker_index | int }}-bmc-secret"
-        hardwareProfile: unknown
-        bootMACAddress: "{{ item.prov_mac }}"
-        userData:
-          name: worker-user-data
-          namespace: openshift-machine-api
+    src: bare-metal-host.yaml.j2
   loop: "{{ scale_worker_node.nodes }}"
   loop_control:
     extended: yes
