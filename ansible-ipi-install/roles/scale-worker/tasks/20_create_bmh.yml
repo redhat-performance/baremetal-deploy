@@ -1,5 +1,5 @@
 - name: Create BareMetalHost definition file for new worker
-  copy:
+  template:
     dest: "{{ scaling_dir }}/worker-{{ ansible_loop.index0 + scale_worker_index | int }}-bmh.yaml"
     src: bare-metal-host.yaml.j2
   loop: "{{ scale_worker_node.nodes }}"
