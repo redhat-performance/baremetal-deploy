@@ -33,23 +33,12 @@ platform:
 {% if ((release_version[0]|int == 4) and (release_version[2]|int < 5)) %}
     dnsVIP: {{ dnsvip }}
 {% endif %}
-    provisioningBridge: {{ provisioning_bridge }}
 {% if baremetal_bridge != 'baremetal' %}
     externalBridge: {{ baremetal_bridge }}
 {% endif %}
-{% if (release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int > 3)) %}
-    provisioningNetworkInterface: {{ masters_prov_nic }}
-    provisioningNetworkCIDR: {{ provisioning_subnet }}
-{% if prov_dhcp_range is defined and prov_dhcp_range|length %}
-    provisioningDHCPRange: {{ prov_dhcp_range }}
-{% endif %}
-{% if prov_bootstrap_ip is defined and prov_bootstrap_ip|length %}
-    bootstrapProvisioningIP: {{ prov_bootstrap_ip }}
-{% endif %}
-{% if prov_ip is defined and prov_ip|length %}
-    clusterProvisioningIP: {{ prov_ip }}
-{% endif %}
-{% endif %}
+    provisioningNetwork: "Disabled"
+    provisioningHostIP: {{ provisioningHostIP }}
+    bootstrapProvisioningIP: {{ bootstrapProvisioningIP }}
 {% if bootstraposimage is defined and bootstraposimage|length %}
     bootstrapOSImage: {{ bootstraposimage }}
 {% endif %}
@@ -61,14 +50,18 @@ platform:
       - name: {{ hostvars[host]['inventory_hostname'] }}
         role: {{ hostvars[host]['role'] }}
         bmc:
-{% if groups['dell_hosts_redfish'] is defined and host in groups['dell_hosts_redfish'] and ((release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int >= 5))) %}
-          address: redfish://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/System.Embedded.1
+{% if groups['dell_hosts_redfish'] is defined and host in groups['dell_hosts_redfish'] and ((release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int >= 6))) and enable_virtualmedia|bool %}
+          address: idrac-virtualmedia://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/System.Embedded.1
           disableCertificateVerification: {{ disable_bmc_certificate_verification }}
-{% elif groups['hp_hosts_redfish'] is defined and host in groups['hp_hosts_redfish'] and ((release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int >= 5))) %}
-          address: redfish://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/1
+{% elif groups['hp_hosts_redfish'] is defined and host in groups['hp_hosts_redfish'] and ((release_version[0]|int > 4) or ((release_version[0]|int == 4) and (release_version[2]|int >= 6))) and enable_virtualmedia|bool %}
+          address: redfish-virtualmedia://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/1
+          disableCertificateVerification: {{ disable_bmc_certificate_verification }}
+{% elif ansible_system_vendor == 'Dell Inc.' %}
+          address: idrac-virtualmedia://{{ hostvars[host]['ipmi_address']|ipwrap }}/redfish/v1/Systems/System.Embedded.1
           disableCertificateVerification: {{ disable_bmc_certificate_verification }}
 {% else %}
-          address: ipmi://{{ hostvars[host]['ipmi_address']|ipwrap }}:{{ hostvars[host]['ipmi_port']|default(623) }}
+          address: redfish-virtualmedia://{{ hostvars[host]['ipmi_address']|ipwrap }}:{{ hostvars[host]['ipmi_port']|default(623) }}
+          disableCertificateVerification: {{ disable_bmc_certificate_verification }}
 {% endif %}
           username: {{ hostvars[host]['ipmi_user'] }}
           password: {{ hostvars[host]['ipmi_password'] }}
