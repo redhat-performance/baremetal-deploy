@@ -108,4 +108,4 @@
 
 - name: set ocp_nondeplopyed_node_content
   set_fact:
-    nondeploying_worker_nodes_content: "{{ ocp_nondeployed_node_content | combine({'nodes': ocp_nondeployed_node_content.nodes|difference(scale_worker_node.nodes)}, recursive=True) }}"   
+    nondeploying_worker_nodes_content: "{{ ocp_nondeployed_node_content | combine({'nodes': ocp_nondeployed_node_content.nodes|difference(scale_worker_node.nodes)}, recursive=True) }}"
