@@ -772,10 +772,12 @@ oc get nodes
 oc adm cordon <node_name>
 oc adm drain <node_name> --force=true
 
-oc delete node <node_name>
-
 oc get machinesets -n openshift-machine-api
 oc scale --replicas=1 machineset <machineset> -n openshift-machine-api
+
+# Check active worker nodes, it would have been reduced to 1
+oc get nodes  
+oc get machinesets
 
 oc delete bmh <host_name> -n openshift-machine-api 
 ```

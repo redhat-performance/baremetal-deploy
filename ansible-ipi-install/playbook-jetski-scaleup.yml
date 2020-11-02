@@ -43,4 +43,3 @@
         dest: "{{ ocp_nondeployed_node_inv_path }}"
         state: absent
       when: nondeploying_worker_nodes_content.nodes | length == 0
-   
