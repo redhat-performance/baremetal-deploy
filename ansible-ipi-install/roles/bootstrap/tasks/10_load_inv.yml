@@ -94,7 +94,7 @@
               {% set a=ocpinv_content.pop('nodes') %}
               {{ ocpinv_content | combine({'nodes': a|difference([a[0]])}, recursive=True) }}
 
-- name: dump deploying master nodes file
+- name: dump deploying master nodes to a file
   copy:
     dest: "/tmp/metadata.txt"
     content: "{{ lookup('template', 'node_inv.j2') | to_nice_json  }}"
@@ -130,7 +130,7 @@
   set_fact:
     worker_index: "{{ worker_count | int + 3 }}"
 
-- name: dump deploying worker nodes file
+- name: dump deploying worker nodes to a file
   copy:
     dest: "/tmp/metadata.txt"
     content: "{{ lookup('template', 'node_inv.j2') | to_nice_json  }}"
@@ -203,7 +203,7 @@
   vars:
     query: nodes[3:{{worker_index}}].mac[1]
 
-- name: dump non deploying worker nodes file
+- name: dump non deploying worker nodes to a file
   copy:
     dest: "/tmp/metadata.txt"
     content: "{{ lookup('template', 'node_inv.j2') | to_nice_json  }}"
