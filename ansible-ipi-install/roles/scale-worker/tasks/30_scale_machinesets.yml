@@ -10,7 +10,7 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_file }}"
   shell: |
-    oc -n openshift-machine-api scale --replicas={{ scale_worker_count }} machineset {{ worker_machineset.stdout }}
+    oc -n openshift-machine-api scale --replicas={{ worker_count }} machineset {{ worker_machineset.stdout }}
 
 - name: wait for 30 minutes before checking for Machinesets 
   wait_for:
@@ -24,8 +24,8 @@
   register: mcp_machineset_ready
   retries: 30
   delay: 60
-  until: mcp_machineset_ready.stdout == "{{ scale_worker_count }}"
-  changed_when: mcp_machineset_ready.stdout == "{{ scale_worker_count }}"
+  until: mcp_machineset_ready.stdout == "{{ worker_count }}"
+  changed_when: mcp_machineset_ready.stdout == "{{ worker_count }}"
   
 - name: Wait for machineset to be ready
   environment:
@@ -35,5 +35,5 @@
   register: mcp_machineset_ready
   retries: 30
   delay: 60
-  until: mcp_machineset_ready.stdout == "{{ scale_worker_count }}"
-  changed_when: mcp_machineset_ready.stdout == "{{ scale_worker_count }}"
+  until: mcp_machineset_ready.stdout == "{{ worker_count }}"
+  changed_when: mcp_machineset_ready.stdout == "{{ worker_count }}"

@@ -33,10 +33,6 @@ rebuild_provisioner: false
 # However that behaviour can be overrided by explicitly settign the desired number of workers here. For a masters only deploy,
 # set worker_count to 0
 worker_count: 0
-# Required only when scaling up an existing cluster, provided lab allocation is sufficient to scale up to this count. 
-# If not mentioned for a scale up execution, it includes all node available in the inventory `ocpnondeployednodeinv.json`
-# set scale_worker_count to be total worker size. This value should not be less than existing worker_count. 
-scale_worker_count: 0
 # set to true to deploy with jumbo frames
 jumbo_mtu: false
 alias:

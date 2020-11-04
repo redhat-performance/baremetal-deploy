@@ -15,7 +15,7 @@
         - lab_ipmi_user
         - lab_ipmi_password
         - scale_worker_node
-        - scale_worker_count
+        - worker_count
         - current_worker_count
 
 - hosts: provisioner

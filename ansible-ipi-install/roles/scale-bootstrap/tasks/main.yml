@@ -76,12 +76,12 @@
 
 - name: Set scale worker count
   set_fact:
-    scale_worker_count: "{{ ocp_nondeployed_node_content.nodes | length + current_worker_count | int }}"
-  when: scale_worker_count is not defined 
+    worker_count: "{{ ocp_nondeployed_node_content.nodes | length + current_worker_count | int }}"
+  when: worker_count is not defined 
 
 - name: Set scale worker index
   set_fact:
-    scale_worker_index: "{{ scale_worker_count | int - current_worker_count | int}}"
+    scale_worker_index: "{{ worker_count | int - current_worker_count | int}}"
 
 - name: set scale_worker_node
   set_fact:
@@ -93,8 +93,8 @@
 - name: Fail when required number of worker nodes cannot be scaled
   fail:
     msg: Required number of nodes are not available to scale workers
-  when: ( ( scale_worker_node.nodes | length + current_worker_count | int ) != scale_worker_count | int ) or
-        ( scale_worker_count | int <= current_worker_count | int )    # If scale request is lesser than or equal current count
+  when: ( ( scale_worker_node.nodes | length + current_worker_count | int ) != worker_count | int ) or
+        ( worker_count | int <= current_worker_count | int )    # If scale request is lesser than or equal current count
 
 - name: Set worker FQDNs
   set_fact:

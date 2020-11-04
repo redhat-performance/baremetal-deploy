@@ -84,7 +84,7 @@ The purpose served by each role can be summarized as follows:
 * `installer` - Actually drives the OpenShift Installer. This role runs on the provisioner host.
 
 Scale Up worker roles
-* `scale-bootstrap` - This role is similar to **boostrap**, but runs only during scale up worker playbook execution, it is responsible for gathering inventory details from the local file `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`. It validates the input `scale_worker_count` with the available non deployed nodes.
+* `scale-bootstrap` - This role is similar to **boostrap**, but runs only during scale up worker playbook execution, it is responsible for gathering inventory details from the local file `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`. It validates the input `worker_count` with the available non deployed nodes.
 * `scale-node-prep` - This role is similar to **shared-labs-prep**, runs only during scale up worker playbook execution, it is responsible for setting up the boot order on the new worker nodes.
 * `scale-worker` - This is the main role which does all openshift operations, it creates BMC scecret, BMH objects for new host and scale worker machinesets. 
 
@@ -325,10 +325,6 @@ rebuild_provisioner: false
 # However that behaviour can be overrided by explicitly settign the desired number of workers here. For a masters only deploy,
 # set worker_count to 0
 worker_count: 0
-# Required only when scaling up an existing cluster, provided lab allocation is sufficient to scale up to this count. 
-# If not mentioned for a scale up execution, it includes all node available in the inventory `ocpnondeployednodeinv.json`
-# set scale_worker_count to be total worker size. This value should not be less than existing worker_count. 
-scale_worker_count: 0
 # set to true to deploy with jumbo frames
 jumbo_mtu: false
 alias:
@@ -602,7 +598,7 @@ worker-0.openshift.example.com               Ready    worker          19h   v1.1
 ```
 ### The Ansible `playbook-jetski-scaleup.yml`
 
-This playbook scales up worker nodes to the desired `scale_worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml`. It must be executed from the same ansible jump host (ansible machine which is used to deploy the fresh cluster using `playbook-jetski.yml`) and from the same directory because it refers to `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) present inside `ansible-ipi-install`directory. 
+This playbook scales up worker nodes to the desired `worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml`. It must be executed from the same ansible jump host (ansible machine which is used to deploy the fresh cluster using `playbook-jetski.yml`) and from the same directory because it refers to `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) present inside `ansible-ipi-install`directory. 
 
 Sample `playbook-jetski-scaleup.yml`:
 
@@ -624,7 +620,7 @@ Sample `playbook-jetski-scaleup.yml`:
         - lab_ipmi_user
         - lab_ipmi_password
         - scale_worker_node
-        - scale_worker_count
+        - worker_count
         - current_worker_count
 
 - hosts: provisioner
