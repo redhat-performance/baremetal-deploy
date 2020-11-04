@@ -12,9 +12,9 @@
   shell: |
     oc -n openshift-machine-api scale --replicas={{ worker_count }} machineset {{ worker_machineset.stdout }}
 
-- name: wait for 30 minutes before checking for Machinesets 
+- name: wait for 20 minutes before checking for Machinesets 
   wait_for:
-    timeout: 1800
+    timeout: 1200
 
 - name: Wait for machineset to be available
   environment:

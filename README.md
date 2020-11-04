@@ -324,6 +324,9 @@ rebuild_provisioner: false
 # Number of workers desired, by default all hosts in your allocation except 1 provisioner and 3 masters are used workers
 # However that behaviour can be overrided by explicitly settign the desired number of workers here. For a masters only deploy,
 # set worker_count to 0
+# Update this variable to scale up your existing cluster, provided lab allocation is sufficient to scale up to this count. 
+# If not mentioned for a scale up execution, it includes all node available in the inventory `ocpnondeployednodeinv.json`
+# If mentioned, this value should be final worker count and cannot be less than existing worker_count.
 worker_count: 0
 # set to true to deploy with jumbo frames
 jumbo_mtu: false
@@ -598,7 +601,7 @@ worker-0.openshift.example.com               Ready    worker          19h   v1.1
 ```
 ### The Ansible `playbook-jetski-scaleup.yml`
 
-This playbook scales up worker nodes to the desired `worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml`. It must be executed from the same ansible jump host (ansible machine which is used to deploy the fresh cluster using `playbook-jetski.yml`) and from the same directory because it refers to `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) present inside `ansible-ipi-install`directory. 
+This playbook scales up worker nodes to the desired `worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml` make sure to update the worker_count before execution. It must be executed from the same ansible jump host (ansible machine which is used to deploy the fresh cluster using `playbook-jetski.yml`) and from the same directory because it refers to `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) present inside `ansible-ipi-install`directory. 
 
 Sample `playbook-jetski-scaleup.yml`:
 
@@ -661,7 +664,7 @@ $ ansible-playbook -i inventory/jetski/hosts playbook-jetski-scaleup.yml
 
 ## Verifying Installation
 
-Once the playbook has successfully completed, verify that your environment is up and running.
+Once the playbook has successfully completed, verify that your environment is up and running. 
 
 1. Log into the provisioner node (typically the first node in you lab assignment)
 
