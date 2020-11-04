@@ -327,6 +327,7 @@ rebuild_provisioner: false
 worker_count: 0
 # Required only when scaling up an existing cluster, provided lab allocation is sufficient to scale up to this count. 
 # If not mentioned for a scale up execution, it includes all node available in the inventory `ocpnondeployednodeinv.json`
+# set scale_worker_count to be total worker size. This value should not be less than existing worker_count. 
 scale_worker_count: 0
 # set to true to deploy with jumbo frames
 jumbo_mtu: false
@@ -601,7 +602,7 @@ worker-0.openshift.example.com               Ready    worker          19h   v1.1
 ```
 ### The Ansible `playbook-jetski-scaleup.yml`
 
-This playbook scales up worker nodes to the desired `scale_worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml`. It must be executed from the same admin node (ansible machine which is used to deploy the fresh cluster using `playbook-jetski.yml`), because it refers to `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) present inside `ansible-ipi-install`. 
+This playbook scales up worker nodes to the desired `scale_worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml`. It must be executed from the same ansible jump host (ansible machine which is used to deploy the fresh cluster using `playbook-jetski.yml`) and from the same directory because it refers to `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) present inside `ansible-ipi-install`directory. 
 
 Sample `playbook-jetski-scaleup.yml`:
 
@@ -759,7 +760,7 @@ Wednesday 01 July 2020  13:52:42 -0400 (0:00:00.193)       0:00:07.127 ********
 changed: [localhost]
 ```
 
-As soon as the `Download ocpinv.json` task completes successfully, you can exit out of the playbook by using `ctrl+c` and then manually edit the `ocpinv.json` file. The file is a JSON dictionary which has a list of dictionaries under the `nodes` key, each of which represents a node in your lab allocation. By changing the order of nodes/removing nodes from here you are able to assign nodes to a particular role/remove them from deployment. Be careful to ensure that it is still a valid JSON after your edits. For example, if I want to ensure that a specific node in my allocation becomes the provisioner, I would move the dictionary representing that node  to the first position in the `nodes` list, or if I wanted to ensure specific nodes become OpenShift masters, I would put them in the 2,3 and 4 positions in the list, or if I wanted to exclude a few nodes, I would totally remove them from the list of `nodes`. After these changes, for good measure `rm -f ocpnodeinv.json` in the `ansible-ipi-install` directory and re-kick the JetSki playbook and JetSki will consume the edited `ocpinv.json`.
+As soon as the `Download ocpinv.json` task completes successfully, you can exit out of the playbook by using `ctrl+c` and then manually edit the `ocpinv.json` file. The file is a JSON dictionary which has a list of dictionaries under the `nodes` key, each of which represents a node in your lab allocation. By changing the order of nodes/removing nodes from here you are able to assign nodes to a particular role/remove them from deployment. Be careful to ensure that it is still a valid JSON after your edits. For example, if I want to ensure that a specific node in my allocation becomes the provisioner, I would move the dictionary representing that node  to the first position in the `nodes` list, or if I wanted to ensure specific nodes become OpenShift masters, I would put them in the 2,3 and 4 positions in the list, or if I wanted to exclude a few nodes, I would totally remove them from the list of `nodes`. After these changes, if you re-kick the JetSki playbook and JetSki will consume the edited `ocpinv.json`.
 
 ### Rerunning a failed scaleup worker job
 
