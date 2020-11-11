@@ -293,14 +293,10 @@
       
     - name: Clean up any existing manifest content
       file:
-        path: "{{ manifest_path }}"
+        path: "{{ item }}"
         state: absent
-
-    - name: Create manifest directory
-      file:
-        path: "{{ manifest_path }}"
-        state: directory
-        mode: 0777
+      with_fileglob:
+        - "{{ manifest_path }}*"
 
     - name: Copy files to manifest path
       copy:
