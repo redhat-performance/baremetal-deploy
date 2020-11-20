@@ -59,7 +59,7 @@
     - name: setup hammercli if not in container
       shell: |
         hammer --fetch-ca-cert {{ foreman_url }}
-#        j2 /root/foreman.yml.j2 > /etc/hammer/cli.modules.d/foreman.yml
+        j2 foreman.yml.j2 > /etc/hammer/cli.modules.d/foreman.yml
       when: not run_in_container
 
     - name: update host to install new os (scale lab)
