@@ -177,7 +177,6 @@
     supermicro_workers: []
     dell_masters: []
     supermicro_masters: []
-    ocp_fqdns: []
     master_fqdns: []
     worker_fqdns: []
     non_deploy_worker_fqdns: []
@@ -306,16 +305,6 @@
   fail:
     msg: "Not a supported configuration for workers"
   when: "'r620' in worker_types and 'r630' in worker_types"
-
-- name: set fact for ocp nodes mgmt
-  set_fact:
-    ocp_mgmts: "{{ ocp_node_content| json_query('nodes[*].pm_addr')}}"
-
-- name: Set ocp node FQDNs
-  set_fact:
-    ocp_fqdns: "{{ ocp_fqdns + [ item |  replace('mgmt-','') | replace('-drac', '') ] }}"
-  with_items:
-    - "{{ ocp_mgmts }}"
 
 - name: set fact for master bm macs
   set_fact:
