@@ -4,6 +4,10 @@ alias:
     dell:
       740xd: 
         pub_nic: eno3
+      "7425":
+        pub_nic: eno3
+      "7525":
+        pub_nic: eno3
     supermicro:
       6029r:
         pub_nic: eno1
