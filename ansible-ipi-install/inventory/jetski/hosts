@@ -107,7 +107,7 @@ cluster="test"
 # set the cluster_random boolean below to true to append a random number to you cluster name.
 cluster_random=true
 # The public CIDR address, i.e. 10.1.1.0/21
-extcidrnet="192.168.222.0/24"
+extcidrnet="192.168.216.0/21"
 
 # NOTE: For the RH shared labs, the VIPs below are automated w/ variables
 #       based on the extcidrnet above.
