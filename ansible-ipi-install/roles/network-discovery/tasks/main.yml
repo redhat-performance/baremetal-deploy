@@ -34,24 +34,56 @@
   with_items:
     - "{{ ansible_eligible_interfaces }}"
 
-- name: Get the provisioning interface
-  set_fact:
-    prov_nic: "{{ item }}"
-  when: ansible_{{ item }}.macaddress is defined and ansible_{{ item }}.type == "ether" and ansible_{{ item }}.macaddress == prov_mac
-  with_items:
-    - "{{ ansible_eligible_interfaces }}"
-
 - name: Set lab_pub_nics for master
   set_fact:
-    lab_pub_nics: "{{ [lab_pub_nic] }}"
+    lab_pub_nics: []
 
-- name: Setting public nics for all workers
+- name: Setting public and prov nics 
   block:
-    - set_fact:
+    - name: Set master public nics
+      set_fact:
+        lab_pub_nics:  "{{ lab_pub_nics + [ lab_vars['machine_types'][item.0][item.1]['pub_nic'] ]  }}"
+      with_together: 
+        - "{{ master_vendors }}"
+        - "{{ master_types }}"
+
+    - name: Set worker public nics
+      set_fact:
         lab_pub_nics:  "{{ lab_pub_nics + [ lab_vars['machine_types'][item.0][item.1]['pub_nic'] ]  }}"
       with_together: 
         - "{{ worker_vendors }}"
         - "{{ worker_types }}"
+
+    - name: Set the provisioning interface
+      set_fact:
+        prov_nic: "{{ item }}"
+      with_items:
+        - "{{ ansible_eligible_interfaces }}"
+      when: 
+        - master_types | unique == [provisioner_type]
+        - ansible_{{ item }}.macaddress is defined and ansible_{{ item }}.type == "ether" and ansible_{{ item }}.macaddress == prov_mac
+
+    - block:       
+        - name: Set provisioning interface
+          set_fact:
+            prov_nic: "{{ lab_vars['machine_types'][item.0][item.1]['prov_nic_f04'] if 'r640' in master_fqdns[0].split('.')[0].split('-') and 'f04' in master_fqdns[0].split('.')[0].split('-') else lab_vars['machine_types'][item.0][item.1]['prov_nic'] }}"
+          with_together: 
+            - "{{ master_vendors }}"
+            - "{{ master_types }}"
+          when: 
+            - ( '1029u' not in master_types )
+
+        - name: Echo provisioning interface
+          debug:
+            msg: Script uses already defined Provisioning interface - {{ prov_nic }} for Supermicro 1029u models.
+          when: 
+            - ( '1029u' in master_types )
+          failed_when: prov_nic is not defined or prov_nic == ""
+          
+      when: 
+        - master_types | unique != [provisioner_type]
+        - master_types | unique | length == 1
+
   vars:
     lab_vars: "{{ (lab_name == 'scale') | ternary(scale, alias) }}"
   when: lab_name in ['scale', 'alias']

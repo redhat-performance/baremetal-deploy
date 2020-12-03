@@ -173,6 +173,7 @@
     worker_types: []
     worker_vendors: []
     master_types: []
+    master_vendors: []
     dell_workers: []
     supermicro_workers: []
     dell_masters: []
@@ -258,6 +259,12 @@
       with_items:
         - "{{ master_fqdns }}"
 
+    - name: Set master node vendors
+      set_fact:
+        master_vendors: "{{ master_vendors + [(item in lab_vars['machine_types']['supermicro']) | ternary('supermicro', 'dell')] }}"
+      with_items:
+        - "{{ master_types }}"
+
     - name: Set master node dells (scale)
       set_fact:
         dell_masters: "{{ dell_masters + [ item ] }}"
@@ -300,7 +307,7 @@
 - name: Fail when masters are non homogeneous or don't match provisioner
   fail:
     msg: "Homogenuous nodes which match provisioner node are needed for masters"
-  when: master_types | unique | length > 1 or master_types | unique != [provisioner_type]
+  when: master_types | unique | length > 1
 
 - name: Fail when worker nodes have R620s and R630s
   fail:
