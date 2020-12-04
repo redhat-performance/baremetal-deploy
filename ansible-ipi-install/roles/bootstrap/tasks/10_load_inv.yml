@@ -304,9 +304,9 @@
     lab_vars: "{{ (lab_name == 'scale') | ternary(scale, alias) }}"
   when: lab_name in ['scale', 'alias']
 
-- name: Fail when masters are non homogeneous or don't match provisioner
+- name: Fail when masters are non homogeneous
   fail:
-    msg: "Homogenuous nodes which match provisioner node are needed for masters"
+    msg: "Master nodes should be Homogeneous, but identified these types - {{ master_types }}"
   when: master_types | unique | length > 1
 
 - name: Fail when worker nodes have R620s and R630s
