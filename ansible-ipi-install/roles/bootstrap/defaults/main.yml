@@ -4,15 +4,20 @@ alias:
     dell:
       740xd: 
         pub_nic: eno3
+        prov_nic: eno2
       "7425":
         pub_nic: eno3
+        prov_nic: eno2
       "7525":
         pub_nic: eno3
+        prov_nic: eno2
     supermicro:
       6029r:
         pub_nic: eno1
+        prov_nic: enp130s0f1
       6048p:
         pub_nic: enp5s0f0
+        prov_nic: enp130s0f1
        
 scale:
   lab_url: "http://quads.rdu2.scalelab.redhat.com"
@@ -20,28 +25,41 @@ scale:
     supermicro:
       1029p:
         pub_nic: eno1
+        prov_nic: ens2f1
       1029u:
         pub_nic: eno1
       6048r:
         pub_nic: eno1
+        prov_nic: ens4s0f1
       5039ms:
         pub_nic: enp2s0f0
+        prov_nic: enp1s0f1
       6049p:
         pub_nic: ens5f0
+        prov_nic: ens3f1
       6018r:
         pub_nic: eno1
+        prov_nic: enp4s0f1
     dell:
       r620:
         pub_nic: eno3
+        prov_nic: enp66s0f3
       r630:
         pub_nic: enp3s0f0
+        prov_nic: eno2
       r730xd:
         pub_nic: em3
+        prov_nic: em2
       r720xd:
         pub_nic: em3
+        prov_nic: p4p2
       r930:
         pub_nic: em3
+        prov_nic: eno2
       fc640:
         pub_nic: eno1
+        prov_nic: ens2f0
       r640:
         pub_nic: eno1
+        prov_nic: ens1f1
+        prov_nic_f04: ens3f1
