@@ -102,25 +102,41 @@
   with_items:
     - "{{ scale_worker_node.nodes }}"
 
+- name: Define variables
+  set_fact:
+    dell_nodes: []
+    supermicro_nodes: []
+
 - name: Set worker nodes
   block:
-    - name: Set worker node dells
+    - name: Set worker node dells (scale)
       set_fact:
-        dell_nodes: "{{ dell_workers | default([]) + [ item ] }}"
+        dell_nodes: "{{ dell_nodes + [ item ] }}"
       with_items:
         - "{{ worker_fqdns }}"
-      when: 
-        - ( item.split('.')[0].split('-')[2] in lab_vars['machine_types']['dell'] ) or 
-          ( item.split('.')[0].split('-')[3] in lab_vars['machine_types']['dell'] )
+      when: lab_name == 'scale' and item.split('.')[0].split('-')[3] in lab_vars['machine_types']['dell']
 
-    - name: Set worker node supermicros
+    - name: Set worker node dells (alias)
       set_fact:
-        supermicro_nodes: "{{ supermicro_workers | default([]) + [ item ] }}"
+        dell_nodes: "{{ dell_nodes + [ item ] }}"
       with_items:
         - "{{ worker_fqdns }}"
-      when:
-        - ( item.split('.')[0].split('-')[2] in lab_vars['machine_types']['supermicro'] ) or
-          ( item.split('.')[0].split('-')[3] in lab_vars['machine_types']['supermicro'] )
+      when: lab_name == 'alias' and item.split('.')[0].split('-')[2] in lab_vars['machine_types']['dell']
+
+    - name: Set worker node supermicros (scale)
+      set_fact:
+        supermicro_nodes: "{{ supermicro_nodes + [ item ] }}"
+      with_items:
+        - "{{ worker_fqdns }}"
+      when: lab_name == 'scale' and item.split('.')[0].split('-')[3] in lab_vars['machine_types']['supermicro']
+
+    - name: Set worker node supermicros (alias)
+      set_fact:
+        supermicro_nodes: "{{ supermicro_nodes + [ item ] }}"
+      with_items:
+        - "{{ worker_fqdns }}"
+      when: lab_name == 'alias' and item.split('.')[0].split('-')[2] in lab_vars['machine_types']['supermicro']
+
   vars:
     lab_vars: "{{ (lab_name == 'scale') | ternary(scale, alias) }}"
   when: lab_name in ['scale', 'alias']
