@@ -43,15 +43,42 @@
 
 - name: Set lab_pub_nics for master
   set_fact:
-    lab_pub_nics: "{{ [lab_pub_nic] }}"
+    lab_pub_nics: []
 
-- name: Setting public nics for all workers
+- name: Setting public and prov nics 
   block:
-    - set_fact:
+    - name: Set master public nics
+      set_fact:
+        lab_pub_nics:  "{{ lab_pub_nics + [ lab_vars['machine_types'][item.0][item.1]['pub_nic'] ]  }}"
+      with_together: 
+        - "{{ master_vendors }}"
+        - "{{ master_types }}"
+
+    - name: Set worker public nics
+      set_fact:
         lab_pub_nics:  "{{ lab_pub_nics + [ lab_vars['machine_types'][item.0][item.1]['pub_nic'] ]  }}"
       with_together: 
         - "{{ worker_vendors }}"
         - "{{ worker_types }}"
+
+    - block:       
+        - name: Set provisioning interface
+          set_fact:
+            masters_prov_nic: "{{ lab_vars['machine_types'][item.0][item.1]['prov_nic_f04'] if 'r640' in master_fqdns[0].split('.')[0].split('-') and 'f04' in master_fqdns[0].split('.')[0].split('-') else lab_vars['machine_types'][item.0][item.1]['prov_nic'] }}"
+          with_together: 
+            - "{{ master_vendors }}"
+            - "{{ master_types }}"
+          when: 
+            - ( '1029u' not in master_types )
+
+        - name: Echo provisioning interface
+          debug:
+            msg: Script using defined Provisioning interface - {{ masters_prov_nic }} from the inventory.
+          when: 
+            - ( '1029u' in master_types )
+          failed_when: masters_prov_nic is not defined or masters_prov_nic == ""
+      when: 
+        - master_types | unique != [provisioner_type]
   vars:
     lab_vars: "{{ (lab_name == 'scale') | ternary(scale, alias) }}"
   when: lab_name in ['scale', 'alias']

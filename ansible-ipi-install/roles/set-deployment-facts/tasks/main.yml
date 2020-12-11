@@ -5,6 +5,8 @@
      "{{ item }}": "{{ hostvars[groups['orchestration'][0]][item] }}"
   with_items:
     - master_fqdns
+    - master_types
+    - master_vendors
     - worker_fqdns
     - worker_types
     - worker_vendors
@@ -17,3 +19,4 @@
     - lab_ipmi_user
     - lab_ipmi_password
     - ocp_deploying_node_content
+    - provisioner_type
