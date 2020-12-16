@@ -15,4 +15,5 @@ spec:
   defaultNetwork:
     type: OVNKubernetes
     ovnKubernetesConfig:
-      hybridOverlayConfig: {}
+      hybridOverlayConfig: 
+        hybridClusterNetwork: []
