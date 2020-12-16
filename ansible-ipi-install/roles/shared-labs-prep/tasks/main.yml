@@ -263,35 +263,6 @@
     enabled: yes
   become: yes
 
-- name: Create fake root
-  block:
-    - name: Set fake root directory path
-      set_fact:
-        fake_root: "{{ playbook_dir }}/roles/installer/files/customize_filesystem/master"
-      
-    - name: Clean up any existing fake root content
-      file:
-        path: "{{ fake_root }}"
-        state: absent
-
-    - name: Set ifcfg path
-      set_fact:
-        ifcfg_path: "{{ fake_root }}/etc/sysconfig/network-scripts"
-
-    - name: Create fake root directory
-      file:
-        path: "{{ ifcfg_path }}"
-        state: directory
-        mode: 0777
-
-    - name: Create ifcfg files to disable NICs
-      template:
-        src: ocp4-lab.ifcfg-template.j2
-        dest: "{{ ifcfg_path }}/ifcfg-{{ item }}"
-        mode: 0644
-      with_items: "{{ disable_nics }}"
-  delegate_to: localhost
-
 - name: Create Manifest folder
   block:
     - name: Set manifest directory path
@@ -305,7 +276,18 @@
       with_fileglob:
         - "{{ manifest_path }}*"
 
-    - name: Copy files to manifest path
+    - name: Copy machine config file to Disable public nic
+      template:
+        src: ocp4-lab.machineconfig.yml.j2
+        dest: "{{ manifest_path }}/50-disable-lab-public-nic-{{ node_item }}.yaml"
+        mode: 0644
+      with_items:
+        - "master"
+        - "worker"
+      loop_control:
+          loop_var: node_item
+
+    - name: Copy OVN hybrid manifest files 
       copy:
         src: "{{ item }}"
         dest: "{{ manifest_path }}/{{ item }}"
