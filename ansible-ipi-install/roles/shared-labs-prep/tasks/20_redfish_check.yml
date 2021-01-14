@@ -1,0 +1,16 @@
+- name: Redfish job queue
+  block:
+    - name: Wait for iDrac to be responsive (check via --check-boot for Dell)
+      shell:
+        chdir: "{{ badfish_tempdir.path }}"
+        cmd: |
+          source {{ badfish_venv }}/bin/activate
+          {{ badfish_cmd }}{{ item }} --check-boot
+      register: wait_for_idrac
+      until: wait_for_idrac is succeeded
+      retries: 20
+      delay: 30
+  rescue:
+    - name: Rescue - Reset iDRAC - {{ item }}
+      shell: |
+        sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item }} "racadm racreset soft -f"
