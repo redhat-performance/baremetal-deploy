@@ -201,14 +201,26 @@
   when: dell_nodes | length > 0
   tags:
     - bootorder
+
 - name: Supermicro Boot order to PXE
-  shell: ipmitool -I lanplus -H mgmt-{{ item }} -U {{ lab_ipmi_user }} -P {{ lab_ipmi_password }} chassis bootdev pxe options=persistent
-  with_items:
-    - "{{ supermicro_nodes }}"
+  block:
+    - name: Boot order for legacy mode
+      shell: ipmitool -I lanplus -H mgmt-{{ item }} -U {{ lab_ipmi_user }} -P {{ lab_ipmi_password }} chassis bootdev pxe options=persistent
+      with_items:
+        - "{{ supermicro_nodes }}"
+      when:
+        - bootmode is defined
+        - bootmode == 'legacy'
+
+    - name: Boot order for UEFI mode
+      shell: ipmitool -I lanplus -H mgmt-{{ item }} -U {{ lab_ipmi_user }} -P {{ lab_ipmi_password }} raw 0x0 0x8 0x05 0xe0 0x04 0x0 0x0 0x0
+      with_items:
+        - "{{ supermicro_nodes }}"
+      when:
+        - ( bootmode is not defined ) or ( bootmode != 'legacy' )
   when: supermicro_nodes | length > 0
   tags:
     - bootorder
-
   
 - name: Set SELinux permissive
   selinux:
