@@ -19,6 +19,14 @@
     - { role: shared-labs-prep }
     - { role: node-prep }
     - { role: installer }
+    - { role: routable_api, when: routable_api | bool }
+  post_tasks:
+    - name: Fix default route
+      shell: |
+        ssh core@{{ item }}  -o UserKnownHostsFile=/dev/null  -o StrictHostKeyChecking=no  sudo ip route delete default
+        ssh core@{{ item }}  -o UserKnownHostsFile=/dev/null  -o StrictHostKeyChecking=no  sudo ip route add default via {{ extcidrnet | ipaddr('last_usable') }}
+      with_items: "{{ groups['masters'] }}"
+      when: routable_api | bool
   environment:
     http_proxy: "{{ http_proxy }}"
     https_proxy: "{{ https_proxy }}"

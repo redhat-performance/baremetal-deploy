@@ -321,7 +321,7 @@ foreman_url: https://foreman.example.com/
 # However you can also force a reprovsioning of the provisioner node for redeployment scenarios
 rebuild_provisioner: false
 # Number of workers desired, by default all hosts in your allocation except 1 provisioner and 3 masters are used workers
-# However that behaviour can be overrided by explicitly settign the desired number of workers here. For a masters only deploy,
+# However that behaviour can be overrided by explicitly setting the desired number of workers here. For a masters only deploy,
 # set worker_count to 0
 # Update this variable to scale up your existing cluster, provided lab allocation is sufficient to scale up to this count. 
 # If not mentioned for a scale up execution, it includes all node available in the inventory `ocpnondeployednodeinv.json`
@@ -329,17 +329,13 @@ rebuild_provisioner: false
 worker_count: 0
 # set to true to deploy with jumbo frames
 jumbo_mtu: false
-alias:
-#lab specific vars, leave default
-  lab_url: "http://quads11.alias.bos.scalelab.redhat.com"
-scale:
-# lab specific vars, leave default
-  lab_url: "http://quads.rdu2.scalelab.redhat.com"
+# set to true only if you requested a public routable VLAN for your cloud in scale lab
+routable_api: fale
 ```
 
-Here's a sample all.yml for the scale lab with the pull secret and password scraped: http://pastebin.test.redhat.com/890421
+Here's a sample all.yml for the scale lab with the pull secret and password scraped: http://pastebin.test.redhat.com/932634
 
-Here's a sample all.yml for the ALIAS lab with the pull secret and password scraped: http://pastebin.test.redhat.com/890420
+Here's a sample all.yml for the ALIAS lab with the pull secret and password scraped: http://pastebin.test.redhat.com/932635
 
 If you'r a part of the [redhat-performance](https://github.com/redhat-performance) GitHub organization, you can also access the samples here: https://github.com/redhat-performance/JetSki-Configs/tree/master/jetski
 
@@ -784,6 +780,33 @@ Wait till you the see the cluster back to normal state with reduced worker node,
 
 This approach will not work if you want to rebuild a node after a successful playbook execution, because after a successful execution `ocpnondeployednodeinv.json` will be update to latest or removed. 
 Re-run might use the update inventory.
+
+### Pulblic Routable API
+
+By default the the Kuberentes API is only accessible from the provisioner node as the cluster does not have any lab routable IPs and the IPs are only routable from within the cluster. Along with your allocation in Scale Lab, you are able to request for  public routable IP addresses, in which case you can use the `routable_api` option to access your baremetal cluster from outside on the lab/provosioner host as long as you are on VPN. To do this, you need to set `routable_api` in `group_vars/all.yml` to `true` and along with that the `inventory/jetski/hosts` has to use the information from http://wiki.rdu2.scalelab.redhat.com/vlans/ for your cloud and look like below.
+
+For example, if the the VLAN wiki page has details as follow:
+```
+605	10.1.54.0/24	255.255.255.0	10.1.54.254	254	smalleni	746	cloud37
+```
+
+My `inventory/jetski/hosts` should have the following content
+```
+######################################
+# Vars regarding install-config.yaml #
+######################################
+
+# Base domain, i.e. example.com
+domain="rdu2.scalelab.redhat.com"
+# Name of the cluster, i.e. openshift
+cluster="vlan605"
+# Note: Under some conditions, it may be useful to randomize the cluster name. For instance,
+# when redeploying an existing environment this can help avoid VRID conflicts. You can
+# set the cluster_random boolean below to true to append a random number to you cluster name.
+cluster_random=false
+# The public CIDR address, i.e. 10.1.1.0/21
+extcidrnet="10.1.54.0/24"
+```
 
 ### Tips
 
