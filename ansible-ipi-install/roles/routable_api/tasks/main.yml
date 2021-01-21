@@ -1,0 +1,10 @@
+- name: Update dnsmasqconfig for routable_api
+  lineinfile:
+    line: "dhcp-option=3,{{ extcidrnet | ipaddr('last_usable') }}"
+    path: /etc/dnsmasq.d/ocp4-lab.conf
+    insertafter: '^interface=baremetal'
+    state: present
+  become: yes
+  notify:
+    - Restart dnsmasq
+

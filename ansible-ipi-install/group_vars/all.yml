@@ -38,3 +38,5 @@ rebuild_provisioner: false
 worker_count: 0
 # set to true to deploy with jumbo frames
 jumbo_mtu: false
+# set to true only if you requested a public routable VLAN for your cloud in scale lab
+routable_api: false

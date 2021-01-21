@@ -12,9 +12,7 @@
     - worker_vendors
     - dell_nodes
     - supermicro_nodes
-    - master_bm_macs
     - master_prov_macs
-    - worker_bm_macs
     - worker_prov_macs
     - lab_ipmi_user
     - lab_ipmi_password
