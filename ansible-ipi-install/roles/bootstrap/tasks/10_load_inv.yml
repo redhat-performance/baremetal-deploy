@@ -313,20 +313,9 @@
     msg: "Not a supported configuration for workers"
   when: "'r620' in worker_types and 'r630' in worker_types"
 
-- name: set fact for master bm macs
-  set_fact:
-    master_bm_macs:  "{{ ocp_node_content| json_query('nodes[0:3].mac[2]')}}"
-
 - name: set fact for master provisioning macs
   set_fact:
     master_prov_macs:  "{{ ocp_node_content| json_query('nodes[0:3].mac[1]')}}"
-
-# Works even in case of 0 workers as json_query returns empty list
-- name: set fact for worker bm macs
-  set_fact:
-    worker_bm_macs:  "{{ ocp_node_content| json_query(query)}}"
-  vars:
-    query: nodes[3:{{worker_index}}].mac[2]
 
 # Works even in case of 0 workers as json_query returns empty list
 - name: set fact for worker provisioning macs
