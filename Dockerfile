@@ -4,6 +4,7 @@ ENV ansible_dir=/root/JetSki/ansible-ipi-install
 ENV DISABLE_PODMAN=true
 
 RUN yum -y install python3 --nodocs
+RUN yum -y install gcc platform-python-devel --nodocs # needed for pip build
 RUN pip3 install ansible
 RUN yum -y install epel-release --nodocs
 RUN yum --enablerepo=epel -y install sshpass
