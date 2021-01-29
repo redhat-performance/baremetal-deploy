@@ -338,7 +338,7 @@ Here's a sample all.yml for the scale lab with the pull secret and password scra
 
 Here's a sample all.yml for the ALIAS lab with the pull secret and password scraped: http://pastebin.test.redhat.com/932635
 
-If you'r a part of the [redhat-performance](https://github.com/redhat-performance) GitHub organization, you can also access the samples here: https://github.com/redhat-performance/JetSki-Configs/tree/master/jetski
+If you're a part of the [redhat-performance](https://github.com/redhat-performance) GitHub organization, you can also access the samples here: https://github.com/redhat-performance/JetSki-Configs/tree/master/jetski
 
 ### Modifying the `ansible-ipi-install/inventory/jetski/hosts` file
 
