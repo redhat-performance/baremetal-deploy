@@ -27,6 +27,11 @@
   with_items:
     - "{{ ansible_interfaces }}"
 
+# Remove vlaned interfaces from eligible list
+- name: Removing vlaned interfaces
+  set_fact:
+    ansible_eligible_interfaces: "{{ ansible_eligible_interfaces | reject('search', '[.]') | list }}"
+
 - name: Get the bm interface
   set_fact:
     pub_nic: "{{ item }}"
