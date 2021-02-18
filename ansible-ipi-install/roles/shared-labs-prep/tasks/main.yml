@@ -218,6 +218,17 @@
         - "{{ supermicro_nodes }}"
       when:
         - ( bootmode is not defined ) or ( bootmode != 'legacy' )
+
+    - name: Power cycle supermicro nodes
+      shell: |
+        ipmitool -I lanplus -H mgmt-{{ item }} -U {{ lab_ipmi_user }} -P {{ lab_ipmi_password }} power cycle
+      with_items:
+        - "{{ supermicro_nodes }}"
+
+    - name: Wait for few seconds till it boots
+      wait_for:
+        timeout: 300
+
   when: supermicro_nodes | length > 0
   tags:
     - bootorder
