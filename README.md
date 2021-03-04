@@ -22,6 +22,7 @@ _**Table of Contents**_
 
 This Ansible playbook and set of Ansible roles are aimed at providing a cluster of Red Hat OpenShift 4 (`IPI`) in the Red Hat shared labs with as little user input and intervention as possible.
 
+
 ## Prerequisites
 
 The playbook is intended to be run from outside the cluster of machines you wish to deploy on, from a host we will refer to as `jumphost` for the purposes of this discussion. It could even be a user's laptop or some Virtual Machine. The host from which the the playbook is run from (`jumphost`) must satisfy the following requirements
@@ -619,7 +620,6 @@ Sample `playbook-jetski-scaleup.yml`:
         - lab_ipmi_password
         - scale_worker_node
         - worker_count
-        - current_worker_count
 
 - hosts: provisioner
   roles:
