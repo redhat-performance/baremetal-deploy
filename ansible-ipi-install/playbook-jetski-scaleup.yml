@@ -16,7 +16,6 @@
         - lab_ipmi_password
         - scale_worker_node
         - worker_count
-        - current_worker_count
         - dell_nodes
         - supermicro_nodes
         
@@ -27,7 +26,19 @@
 
 - name: Finishing IPI on Baremetal Installation 
   hosts: orchestration
-  tasks: 
+  tasks:
+    - block:
+        - name: Update ocp_nondeplopyed_node_content
+          set_fact:
+            ocp_deploying_node_content: "{{ ocp_deploying_node_content | combine({'nodes': ocp_deploying_node_content.nodes|difference(hostvars[groups['provisioner'][0]].failed_nodes)}, recursive=True) }}"
+
+        - name: Update ocp_nondeplopyed_node_content
+          set_fact:
+            nondeploying_worker_nodes_content: "{{ nondeploying_worker_nodes_content | combine({'nodes': nondeploying_worker_nodes_content.nodes|union(hostvars[groups['provisioner'][0]].failed_nodes)}, recursive=True) }}"
+      when:
+        - hostvars[groups['provisioner'][0]].failed_nodes is defined
+        - hostvars[groups['provisioner'][0]].failed_nodes | length > 0
+        
     - name: Writing Deployed node content to a file
       copy:
         dest: "{{ ocp_deployed_node_inv_path }}"
