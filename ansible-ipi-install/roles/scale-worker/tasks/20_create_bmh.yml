@@ -1,6 +1,6 @@
 - name: Create BareMetalHost definition file for new worker
   template:
-    dest: "{{ scaling_dir }}/worker-{{ ansible_loop.index0 + scale_worker_index | int }}-bmh.yaml"
+    dest: "{{ scaling_dir }}/{{ item.host_name }}-bmh.yaml"
     src: bare-metal-host.yaml.j2
   loop: "{{ scale_worker_node.nodes }}"
   loop_control:
@@ -10,7 +10,7 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_file }}"
   shell: |
-    oc apply -f {{ scaling_dir }}/worker-{{ ansible_loop.index0 + scale_worker_index | int }}-bmh.yaml
+    oc apply -f {{ scaling_dir }}/{{ item.host_name }}-bmh.yaml
   loop: "{{ scale_worker_node.nodes }}"
   loop_control:
     extended: yes
@@ -23,12 +23,24 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_file }}"
   shell: |
-    oc -n openshift-machine-api get bmh/worker-{{ ansible_loop.index0 + scale_worker_index | int }} --template={{'{{'}}.status.provisioning.state{{'}}'}}
+    oc -n openshift-machine-api get bmh/{{ item.host_name }} --template={{'{{'}}.status.provisioning.state{{'}}'}}
   register: bmh_node_ready
   retries: 30
   delay: 60
   until: bmh_node_ready.stdout.find("ready") != -1
   changed_when: bmh_node_ready.stdout_lines|length > 0
+  ignore_errors: true
   loop: "{{ scale_worker_node.nodes }}"
   loop_control:
     extended: yes
+
+- name: Set failed_nodes fact
+  set_fact:
+    failed_nodes: []
+
+- name: Find out if any failed nodes
+  set_fact:
+    failed_nodes: "{{ failed_nodes + [ item.item ] }}"
+  when: item.failed 
+  with_items: "{{ bmh_node_ready.results }}"
+
