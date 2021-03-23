@@ -8,9 +8,9 @@ metadata:
 spec:
   config:
     ignition:
-{% if ((version.split('.')[0]|int == 4) and (version.split('.')[1]|int < 6)) %}
+{% if ((version.split('.')[0]|int == 4 or version.split('.')[0] == 'latest-4') and (version.split('.')[1]|int < 6)) %}
       version: 2.2.0
-{% elif ((version.split('.')[0]|int == 4) and (version.split('.')[1]|int >= 6)) %}
+{% elif ((version.split('.')[0]|int == 4 or version.split('.')[0] == 'latest-4') and (version.split('.')[1]|int >= 6)) %}
       version: 3.1.0
 {% endif %}
     storage:
