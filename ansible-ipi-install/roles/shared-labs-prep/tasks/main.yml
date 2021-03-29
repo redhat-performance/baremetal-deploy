@@ -290,7 +290,7 @@
   block:
     - name: Set manifest directory path
       set_fact:
-        manifest_path: "{{ playbook_dir }}/roles/installer/files/manifests/"
+        manifest_path: "{{ playbook_dir }}/roles/installer/files/openshift/"
       
     - name: Clean up any existing manifest content
       file:
