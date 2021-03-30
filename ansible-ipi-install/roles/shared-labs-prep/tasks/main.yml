@@ -94,7 +94,28 @@
   when: "{{ baremetal_slave_connections }}"
   become: yes
 
-- name: Create Bridge labeled baremetal
+- name: Delete baremetal bridge
+  nmcli:
+    conn_name: baremetal
+    state: absent
+  become: yes
+
+
+- name: Create Bridge labeled baremetal (IPv4)
+  nmcli:
+    conn_name: baremetal
+    type: bridge
+    ifname: baremetal
+    autoconnect: yes
+    stp: off
+    ip4_method: manual
+    ip4: "{{ extcidrnet | next_nth_usable(1) }}/{{ extcidrnet | ipaddr('prefix') }}"
+    ip6_method: disabled
+    state: present
+  become: yes
+  when: not ipv6_enabled|bool or ipv4_baremetal|bool
+
+- name: Create Bridge labeled baremetal (Dual-Stack)
   nmcli:
     conn_name: baremetal
     type: bridge
@@ -104,13 +125,19 @@
     ip4_method: manual
     ip4: "{{ extcidrnet | next_nth_usable(1) }}/{{ extcidrnet | ipaddr('prefix') }}"
     state: present
+    ip6: "{{ extcidrnet6 | next_nth_usable(1) }}/{{ extcidrnet6 | ipaddr('prefix') }}"
+    ip6_method: manual
   become: yes
+  when: ipv6_enabled|bool and dualstack_baremetal|bool
 
 #Moving the dns entry to this task because of above problem
 - name: Set Bridge DNS priority
   shell: |
     nmcli con mod baremetal ipv4.dns {{ extcidrnet | next_nth_usable(1) }} ipv4.dns-priority 10
   become: yes
+  when: (not ipv6_enabled|bool) or
+        (ipv4_baremetal|bool) or 
+        (dualstack_baremetal|bool)
 
 - name: Create Bridge slave on {{ pub_nic }}
   nmcli:
@@ -258,14 +285,6 @@
     mode: 0640
   become: yes
 
-- name: Configure dnsmasq service to start after network is online
-  lineinfile:
-    regexp: "^After=network.target"
-    line: "After=network-online.target"
-    backrefs: yes
-    path: "/usr/lib/systemd/system/dnsmasq.service"
-  become: yes
-
 #FIXME
 - name: Configure firewall
   iptables:
@@ -281,6 +300,8 @@
     out_interface: "{{ lab_pub_nic }}"
     jump: MASQUERADE
   become: yes
+  when: (not ipv6_enabled|bool) or (ipv4_baremetal|bool or dualstack_baremetal|bool)
+
 
 - name: Save iptables configuration
   shell: |
@@ -328,6 +349,8 @@
       when:
         - network_type == "OVNKubernetes" 
         - ovn_hybird_plugin | bool     
+        - not dualstack_baremetal
+        - release_version[0]|int == 4 and release_version[2]|int < 7  
   delegate_to: localhost
 
 - name: Copy the approve_csr script from the local machine to the remote server

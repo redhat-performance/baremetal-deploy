@@ -1,3 +1,4 @@
+{% if not ipv6_enabled or ipv4_baremetal or dualstack_baremetal %}
 listen-address={{ extcidrnet | next_nth_usable(1) }}
 bind-interfaces
 strict-order
@@ -13,9 +14,14 @@ dhcp-option=baremetal,26,9000
 dhcp-range={{ extcidrnet | next_nth_usable(10) }},{{ extcidrnet | ipaddr('last_usable') }}
 dhcp-no-override
 dhcp-authoritative
+{% if (ipv6_enabled and dualstack_baremetal) and not (ipv4_baremetal) %}
+dhcp-range={{ extcidrnet6 | next_nth_usable(10) }},{{ extcidrnet6 | ipaddr('last_usable') }}
+enable-ra
+{% endif %}
 {% for node in ocp_deploying_node_content.nodes %}
 dhcp-host={{ node.bm_mac }},{{ node.ext_ip }},{{ node.host_name }}
 {% endfor %}
 address=/ns1.{{ cluster }}.{{ domain }}/{{ dnsvip }}
 address=/api.{{ cluster }}.{{ domain }}/{{ apivip }}
 address=/.apps.{{ cluster }}.{{ domain }}/{{ ingressvip }}
+{% endif %}

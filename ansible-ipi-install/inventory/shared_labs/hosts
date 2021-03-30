@@ -146,10 +146,14 @@ ipv6_enabled=False
 
 # (Optional) When ipv6_enabled is set to True, but want IPv4 addressing on provisioning network
 # Default is false.
-#ipv4_provisioning=True
+ipv4_provisioning=False
 
 # (Optional) When ipv6_enabled is set to True, but want IPv4 addressing on baremetal network
-#ipv4_baremetal=True
+ipv4_baremetal=False
+
+# (Optional) When ipv6_enabled is set to True, but want dual-stack for baremetal network
+# Only one of ipv4_baremetal and dualstack_baremetal can be true
+dualstack_baremetal=False
 
 # (Optional) A list of clock servers to be used in chrony by the masters and workers
 #clock_servers=["pool.ntp.org","clock.redhat.com"]
@@ -212,8 +216,10 @@ cluster="test"
 # when redeploying an existing environment this can help avoid VRID conflicts. You can
 # set the cluster_random boolean below to true to append a random number to you cluster name.
 cluster_random=true
-# The public CIDR address, i.e. 10.1.1.0/21
+# The public CIDR address, i.e. 10.1.1.0/21 (for IPv4 only and Dual-Stack deploys)
 extcidrnet="192.168.216.0/21"
+# The public CIDR address for IPv6 only and Dual-Stack deploys
+extcidrnet6="fd01:1101::/64"
 
 # NOTE: For the RH shared labs, the VIPs below are automated w/ variables
 #       based on the extcidrnet above.
