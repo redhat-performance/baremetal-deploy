@@ -258,6 +258,14 @@
     mode: 0640
   become: yes
 
+- name: Configure dnsmasq service to start after network is online
+  lineinfile:
+    regexp: "^After=network.target"
+    line: "After=network-online.target"
+    backrefs: yes
+    path: "/usr/lib/systemd/system/dnsmasq.service"
+  become: yes
+
 #FIXME
 - name: Configure firewall
   iptables:
