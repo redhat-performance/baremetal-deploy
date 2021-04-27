@@ -2,3 +2,5 @@
 # defaults file for shared-labs-ocp4-prep
 worker_fqdns: []
 ovn_hybird_plugin: false
+ipv4_baremetal: true
+dualstack_baremetal: false
