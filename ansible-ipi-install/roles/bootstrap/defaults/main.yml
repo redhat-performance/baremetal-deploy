@@ -61,7 +61,7 @@ scale:
         pub_nic: eno1
         prov_nic: ens2f0
       r640:
-        pub_nic: eno1
+        pub_nic: eno1np0
         prov_nic: ens1f1
         prov_nic_f04: ens3f1
 
