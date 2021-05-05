@@ -88,7 +88,7 @@
             - ( '1029u' in master_types )
           failed_when: masters_prov_nic is not defined or masters_prov_nic == ""
       when: 
-        - master_types | unique != [provisioner_type]
+        - master_types | unique != [provisioner_type] or 'r640' in master_fqdns[0].split('.')[0].split('-')
   vars:
     lab_vars: "{{ (lab_name == 'scale') | ternary(scale, alias) }}"
   when: lab_name in ['scale', 'alias']
