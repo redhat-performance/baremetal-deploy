@@ -320,18 +320,20 @@
     msg: "Master nodes should be Homogeneous, but identified these types - {{ master_types }}"
   when: master_types | unique | length > 1
 
-- block:
-  - name: Set fact for rack for R640s
-    set_fact:
-      racks: "{{ racks | default([]) + [item.split('.')[0].split('-')[0]] }}"
-    with_items:
-      - "{{master_fqdns }}"
-
-  - name: Fail on different rack(f04)
-    fail:
-      msg: If one of the master nodes is in rack f04, all of them need to be in the same rack
-    when: "'f04' in racks and racks | unique |  length > 1"
+- name: Set fact for rack for R640s
+  set_fact:
+    racks: "{{ racks | default([]) + [item.split('.')[0].split('-')[0]] }}"
   when: "'r640' in item.split('.')[0].split('-')"
+  with_items:
+    - "{{master_fqdns }}"
+
+- name: Fail on different rack(f04)
+  fail:
+    msg: If one of the master nodes is in rack f04, all of them need to be in the same rack
+  when: 
+    - racks is defined
+    - "'f04' in racks"
+    - racks | unique |  length > 1"
 
 - name: Fail when worker nodes have R620s and R630s
   fail:
