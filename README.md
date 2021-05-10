@@ -318,6 +318,12 @@ pullsecret:
 # and have it be https://foreman.example.com for example. If you are having trouble figuring out this variable please look for the 
 # pastebins under the "Modifying the ansible-ipi-install/group_vars/all.yml file" section in README.md
 foreman_url: https://foreman.example.com/
+# Choose a provisioner node from the allocated cloud, this is optional.
+# Same thing can also be achieved by editing ocpinv.json file and reorder the nodes list. 
+# https://github.com/redhat-performance/JetSki#changing-node-rolesexcluding-nodes-in-your-allocation-from-the-deployment
+# If not specified, it will pick the first node in your cloud as provisioner(preferred)
+# Make sure the specified server hostname doesn't not contain 'mgmt-' or '-drac'.
+# provisioner_hostname: ""
 # The automation automatically rebuilds provisioner node to RHEL 8.1 if not already RHEL 8.1 (see foreman_url variable)
 # However you can also force a reprovsioning of the provisioner node for redeployment scenarios
 rebuild_provisioner: false
@@ -334,9 +340,9 @@ jumbo_mtu: false
 routable_api: false
 ```
 
-Here's a sample all.yml for the scale lab with the pull secret and password scraped: http://pastebin.test.redhat.com/945052
+Here's a sample all.yml for the scale lab with the pull secret and password scraped: http://pastebin.test.redhat.com/962541
 
-Here's a sample all.yml for the ALIAS lab with the pull secret and password scraped: http://pastebin.test.redhat.com/945053 
+Here's a sample all.yml for the ALIAS lab with the pull secret and password scraped: http://pastebin.test.redhat.com/962544 
 
 If you're a part of the [redhat-performance](https://github.com/redhat-performance) GitHub organization, you can also access the samples here: https://github.com/redhat-performance/JetSki-Configs/tree/master/jetski
 

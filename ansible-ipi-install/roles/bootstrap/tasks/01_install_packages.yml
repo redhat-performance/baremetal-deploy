@@ -3,3 +3,6 @@
     name: [ python3-dns, python3-netaddr, ipmitool]
   become: true
 
+- name: install ansible galaxy plugin
+  shell: "ansible-galaxy collection install ansible.utils"
+  become: true
