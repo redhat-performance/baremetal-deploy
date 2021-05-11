@@ -333,7 +333,7 @@
   when: 
     - racks is defined
     - "'f04' in racks"
-    - racks | unique |  length > 1"
+    - "racks | unique |  length > 1"
 
 - name: Fail when worker nodes have R620s and R630s
   fail:
