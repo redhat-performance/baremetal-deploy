@@ -68,11 +68,28 @@
   set_fact:
     ocpinv_content: "{{ invfile['content'] | b64decode | from_json }}"
 
-- name: set provisioner hostname
-  set_fact:
-    provisioner_hostname: "{{ ocpinv_content.nodes[0].pm_addr | replace('mgmt-','') | replace('-drac', '') }}"
-    lab_ipmi_user:  "{{ ocpinv_content.nodes[0].pm_user }}"
-    lab_ipmi_password:  "{{ ocpinv_content.nodes[0].pm_password }}"
+- name: set provisioning host and ocp cluster info
+  block:
+    - name: set provisioner hostname & index
+      set_fact:
+        provisioner_hostname: "{{ ocpinv_content.nodes[0].pm_addr | replace('mgmt-','') | replace('-drac', '') }}"
+        prov_index: 0
+      when: provisioner_hostname is not defined or provisioner_hostname == ""
+
+    - block:
+      - name: set 'pm_addr' for the specified hostname
+        set_fact:
+          prov_node: "mgmt-{{ provisioner_hostname }}"
+
+      - name: set provisioner hostname index
+        set_fact:
+          prov_index: "{{ lookup('ansible.utils.index_of', data=ocpinv_content.nodes, test='eq', key='pm_addr', value=prov_node) }}"
+      when: provisioner_hostname is defined and provisioner_hostname != "" 
+
+    - name: set provisioner hostname
+      set_fact:
+        lab_ipmi_user:  "{{ ocpinv_content.nodes[prov_index|int].pm_user }}"
+        lab_ipmi_password:  "{{ ocpinv_content.nodes[prov_index|int].pm_password }}"
 
 - name: Set scale worker count
   set_fact:
