@@ -1,10 +1,10 @@
 - name: Set lab ipmi password fact
   set_fact:
-    lab_ipmi_user:  "{{ ocpinv_content.nodes[0].pm_user }}"
+    lab_ipmi_user:  "{{ ocpinv_content.nodes[prov_index|int].pm_user }}"
 
 - name: Set lab ipmi password fact
   set_fact:
-    lab_ipmi_password:  "{{ ocpinv_content.nodes[0].pm_password }}"
+    lab_ipmi_password:  "{{ ocpinv_content.nodes[prov_index|int].pm_password }}"
 
 - name: check if os installed as root user
   shell: |

@@ -19,6 +19,7 @@
     - lab_ipmi_password
     - ocp_deploying_node_content
     - provisioner_type
+    - prov_index
 
 - name: Convert pullsecret to JSON
   set_fact:
