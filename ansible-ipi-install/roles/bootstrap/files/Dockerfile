@@ -1,4 +1,4 @@
-FROM centos:8
+FROM quay.io/centos/centos:8
 ARG foreman_url=https://foreman.example.com
 RUN dnf install -y epel-release \
         python3
