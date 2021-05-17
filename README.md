@@ -100,13 +100,10 @@ The tree structure is shown below:
 ├── inventory
 │   ├── jetski
 │   │   └── hosts
-│   ├── shared_labs
-│   │   └── hosts
 │   └── upstream
 │       └── hosts
 ├── OWNERS
 ├── playbook-jetski.yml
-├── playbook-rh-shared-labs.yml
 ├── playbook-jetski-scaleup.yml
 ├── playbook.yml
 ├── prep_kni_user.yml
