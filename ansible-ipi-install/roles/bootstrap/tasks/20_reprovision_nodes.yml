@@ -28,138 +28,146 @@
 
 - name: Perform OS install if needed
   block:
-    - name: Install Podman
-      yum:
-        name: podman
-        state: present
-      become: true
+    - name: Build and run podman
+      block:
+        - name: Install Podman
+          yum:
+            name: podman
+            state: present
+          become: true
+
+        - name: Get Badfish pod image
+          podman_image:
+            name: "{{ badfish_pod_image }}"
+            pull: yes
+            force: yes
+          when: provisioner_vendor == "dell"
+
+        - name: Build the hammercli image
+          shell: podman build --build-arg foreman_url={{ foreman_url }} -t hammercli .
+          args:
+            chdir: "{{ role_path}}/files/"
+
+        - name: update host to install new os (scale lab) in container
+          shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
+          when: lab_name == "scale"
+
+        - name: update host to install new os (alias lab) in container
+          shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium 'rhel_local' --partition-table 'ALIAS-Partition' --overwrite 1
+          when: lab_name == "alias"
+
+        - name: Check power state of provisioner (Dell and in container)
+          shell: |
+            {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-state
+          register: power_state
+          when: provisioner_vendor == "dell"
+
+        - name: Power on Provisioner if powered off (Dell and in container)
+          shell: |
+            {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-on
+          when: provisioner_vendor == "dell" and not 'On' in power_state.stdout
+
+        - name: Wait for node to be powered on (Dell and in container)
+          wait_for:
+            timeout: 20
+          when: provisioner_vendor == "dell" and not 'On' in power_state.stdout
+
+        - name: Set provisioner host to foreman boot order (Dell and in a container)
+          block:
+            - name: Try badfish to set Foreman style interface order
+              shell: |
+                {{ badfish_cmd_container }}{{ provisioner_hostname }} -t foreman
+          rescue:
+            # RACRESET is required if Badfish failed due to Redfish internal error
+            - name: Rescue - Reset iDRAC
+              shell: |
+                sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ provisioner_hostname }} "racadm racreset soft -f"
+
+            - name: Wait for iDrac to be responsive (check via --check-boot)
+              shell: |
+                  {{ badfish_cmd_container }}{{ provisioner_hostname }} --check-boot
+              register: wait_for_prov_idrac
+              until: wait_for_prov_idrac is succeeded
+              retries: 20
+              delay: 30
+
+            - name: Badfish rescue to set Foreman style interface order
+              shell: |
+                {{ badfish_cmd_container }}{{ provisioner_hostname }} -t foreman
+          when: provisioner_vendor == "dell"
+
+        - name: Set provisioner host to reboot (Dell and in container)
+          shell: |
+            {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-cycle
+          when: provisioner_vendor == "dell"          
       when: run_in_container
 
-    - name: Get Badfish pod image
-      podman_image:
-        name: "{{ badfish_pod_image }}"
-        pull: yes
-        force: yes
-      when: run_in_container and provisioner_vendor == "dell"
+    - name: Run CLI without podman
+      block: 
+        - name: setup hammercli if not in container
+          shell: |
+            /usr/local/bin/j2 {{role_path}}/files/foreman.yml.j2 > /etc/hammer/cli.modules.d/foreman.yml
+          environment:
+            foreman_url: "{{ foreman_url }}"
 
-    - name: Build the hammercli image
-      shell: podman build --build-arg foreman_url={{ foreman_url }} -t hammercli .
-      args:
-        chdir: "{{ role_path}}/files/"
-      when: run_in_container
+        - name: Download CA certs if not in container
+          shell: hammer --fetch-ca-cert {{ foreman_url }}
 
-    - name: update host to install new os (scale lab) in container
-      shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
-      when: lab_name == "scale" and run_in_container
+        - name: update host to install new os (scale lab)
+          shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
+          when: lab_name == "scale"
 
-    - name: update host to install new os (alias lab) in container
-      shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium 'rhel_local' --partition-table 'ALIAS-Partition' --overwrite 1
-      when: lab_name == "alias" and run_in_container
+        - name: update host to install new os (alias lab)
+          shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium 'rhel_local' --partition-table 'ALIAS-Partition' --overwrite 1
+          when: lab_name == "alias"
 
-    - name: setup hammercli if not in container
-      shell: |
-        hammer --fetch-ca-cert {{ foreman_url }}
-        j2 {{role_path}}/files/foreman.yml.j2 > /etc/hammer/cli.modules.d/foreman.yml
+        - name: Check power state of provisioner (Dell and not in container)
+          shell: |
+            {{ badfish_cmd }}{{ provisioner_hostname }} --power-state
+          register: power_state
+          when: provisioner_vendor == "dell"
+
+        - name: Power on Provisioner if powered off (Dell and not in container)
+          shell: |
+            {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-on
+          when: provisioner_vendor == "dell" and not 'On' in power_state.stdout
+
+        - name: Wait for node to be powered on (Dell and not in container)
+          wait_for:
+            timeout: 20
+          when: provisioner_vendor == "dell" and not 'On' in power_state.stdout
+
+        - name: Set provisioner host to foreman boot order (Dell and not in a container)
+          block:
+            - name: Try badfish to set Foreman style interface order
+              shell: |
+                {{ badfish_cmd }}{{ provisioner_hostname }} -t foreman
+          rescue:
+            # RACRESET is required if Badfish failed due to Redfish internal error
+            - name: Rescue - Reset iDRAC
+              shell: |
+                sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ provisioner_hostname }} "racadm racreset soft -f"
+
+            - name: Wait for iDrac to be responsive (check via --check-boot)
+              shell: |
+                  {{ badfish_cmd }}{{ provisioner_hostname }} --check-boot
+              register: wait_for_prov_idrac
+              until: wait_for_prov_idrac is succeeded
+              retries: 20
+              delay: 30
+
+            - name: Badfish rescue to set Foreman style interface order 
+              shell: |
+                {{ badfish_cmd }}{{ provisioner_hostname }} -t foreman
+          when: provisioner_vendor == "dell"
+
+        - name: Set provisioner host to reboot (Dell and not in a container)
+          shell: |
+            {{ badfish_cmd }}{{ provisioner_hostname }} --power-cycle
+          when: provisioner_vendor == "dell"
       when: not run_in_container
+      become: true
 
-    - name: update host to install new os (scale lab)
-      shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
-      when: lab_name == "scale" and not run_in_container
-
-    - name: update host to install new os (alias lab)
-      shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium 'rhel_local' --partition-table 'ALIAS-Partition' --overwrite 1
-      when: lab_name == "alias" and not run_in_container
-
-    - name: Check power state of provisioner (Dell and in container)
-      shell: |
-        {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-state
-      register: power_state
-      when: run_in_container and provisioner_vendor == "dell"
-
-    - name: Power on Provisioner if powered off (Dell and in container)
-      shell: |
-        {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-on
-      when: run_in_container and provisioner_vendor == "dell" and not 'On' in power_state.stdout
-
-    - name: Wait for node to be powered on (Dell and in container)
-      wait_for:
-         timeout: 20
-      when: run_in_container and provisioner_vendor == "dell" and not 'On' in power_state.stdout
-
-    - name: Set provisioner host to foreman boot order (Dell and in a container)
-      block:
-        - name: Try badfish to set Foreman style interface order
-          shell: |
-            {{ badfish_cmd_container }}{{ provisioner_hostname }} -t foreman
-      rescue:
-        # RACRESET is required if Badfish failed due to Redfish internal error
-        - name: Rescue - Reset iDRAC
-          shell: |
-            sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ provisioner_hostname }} "racadm racreset soft -f"
-
-        - name: Wait for iDrac to be responsive (check via --check-boot)
-          shell: |
-              {{ badfish_cmd_container }}{{ provisioner_hostname }} --check-boot
-          register: wait_for_prov_idrac
-          until: wait_for_prov_idrac is succeeded
-          retries: 20
-          delay: 30
-
-        - name: Badfish rescue to set Foreman style interface order
-          shell: |
-            {{ badfish_cmd_container }}{{ provisioner_hostname }} -t foreman
-      when: run_in_container and provisioner_vendor == "dell"
-
-    - name: Set provisioner host to reboot (Dell and in container)
-      shell: |
-        {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-cycle
-      when: run_in_container and provisioner_vendor == "dell"
-
-    - name: Check power state of provisioner (Dell and not in container)
-      shell: |
-        {{ badfish_cmd }}{{ provisioner_hostname }} --power-state
-      register: power_state
-      when: not run_in_container and provisioner_vendor == "dell"
-
-    - name: Power on Provisioner if powered off (Dell and not in container)
-      shell: |
-        {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-on
-      when: not run_in_container and provisioner_vendor == "dell" and not 'On' in power_state.stdout
-
-    - name: Wait for node to be powered on (Dell and not in container)
-      wait_for:
-         timeout: 20
-      when: not run_in_container and provisioner_vendor == "dell" and not 'On' in power_state.stdout
-
-    - name: Set provisioner host to foreman boot order (Dell and not in a container)
-      block:
-        - name: Try badfish to set Foreman style interface order
-          shell: |
-            {{ badfish_cmd }}{{ provisioner_hostname }} -t foreman
-      rescue:
-        # RACRESET is required if Badfish failed due to Redfish internal error
-        - name: Rescue - Reset iDRAC
-          shell: |
-            sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ provisioner_hostname }} "racadm racreset soft -f"
-
-        - name: Wait for iDrac to be responsive (check via --check-boot)
-          shell: |
-              {{ badfish_cmd }}{{ provisioner_hostname }} --check-boot
-          register: wait_for_prov_idrac
-          until: wait_for_prov_idrac is succeeded
-          retries: 20
-          delay: 30
-
-        - name: Badfish rescue to set Foreman style interface order 
-          shell: |
-            {{ badfish_cmd }}{{ provisioner_hostname }} -t foreman
-      when: not run_in_container and provisioner_vendor == "dell"
-
-    - name: Set provisioner host to reboot (Dell and not in a container)
-      shell: |
-        {{ badfish_cmd }}{{ provisioner_hostname }} --power-cycle
-      when: not run_in_container and provisioner_vendor == "dell"
-    
     - name: Supermicro rebuild
       block:
         - name: Check power status of node
