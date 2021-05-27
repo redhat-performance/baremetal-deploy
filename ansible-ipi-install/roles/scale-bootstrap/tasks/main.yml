@@ -9,60 +9,11 @@
     "{{ item.name }}": "{{ playbook_dir +  '/' + item.path if inventory_hostname == 'localhost' else inventory_tempdir.path + '/' + item.path }}"
   with_items:
     - { name: ocpinv_file, path: ocpinv.json }
-    - { name: ocp_deployed_node_inv_path, path: ocpdeployednodeinv.json }
-    - { name: ocp_nondeployed_node_inv_path, path: ocpnondeployednodeinv.json }
-
-- name: check  ocp_deployed_node_inv_path file available
-  stat:
-      path: "{{ ocp_deployed_node_inv_path }}"
-  register: deploy_node
-
-- name: check ocp_nondeployed_node_inv_path file available
-  stat:
-      path: "{{ ocp_nondeployed_node_inv_path }}"
-  register: nondeploy_node
-
-- name: Fail when required JSON files are missing
-  fail:
-    msg: Input JSON - file is missing or No available nodes to scale
-  when: ( not deploy_node.stat.exists ) or ( not nondeploy_node.stat.exists )
 
 - name: read inv env file
   slurp:
     src: "{{ ocpinv_file }}"
   register: invfile
-
-- name: read non deployed node file
-  slurp:
-    src: "{{ ocp_nondeployed_node_inv_path }}"
-  register: nondeploy_inv
-
-- name: set inventory fact
-  set_fact:
-    ocp_nondeployed_node_content: "{{ nondeploy_inv['content'] | b64decode | from_json }}"
-
-- name: read non deployed node file
-  slurp:
-    src: "{{ ocp_deployed_node_inv_path }}"
-  register: deploy_inv
-
-- name: set inventory fact
-  set_fact:
-    ocp_deployed_node_content: "{{ deploy_inv['content'] | b64decode | from_json }}"
-
-- name: Set default deployed worker count
-  set_fact:
-    deployed_worker_fqdns: []
-
-- name: Set already deployed worker count
-  set_fact:
-    deployed_worker_fqdns: "{{ deployed_worker_fqdns | default([]) + [ item.pm_addr ] }}"
-  when: "'worker' in item.host_name"
-  loop: "{{ ocp_deployed_node_content.nodes }}"
-  
-- name: Existing worker count
-  set_fact:
-    current_worker_count: "{{ deployed_worker_fqdns | length }}"
 
 - name: set inventory fact
   set_fact:
@@ -90,6 +41,26 @@
       set_fact:
         lab_ipmi_user:  "{{ ocpinv_content.nodes[prov_index|int].pm_user }}"
         lab_ipmi_password:  "{{ ocpinv_content.nodes[prov_index|int].pm_password }}"
+
+- include_role:
+    name: add-provisioner
+    tasks_from: main.yml
+
+- include_tasks: 10_load_old_inv.yml
+
+- name: Set default deployed worker count
+  set_fact:
+    deployed_worker_fqdns: []
+
+- name: Set already deployed worker count
+  set_fact:
+    deployed_worker_fqdns: "{{ deployed_worker_fqdns | default([]) + [ item.pm_addr ] }}"
+  when: "'worker' in item.host_name"
+  loop: "{{ ocp_deployed_node_content.nodes }}"
+  
+- name: Existing worker count
+  set_fact:
+    current_worker_count: "{{ deployed_worker_fqdns | length }}"
 
 - name: Set scale worker count
   set_fact:

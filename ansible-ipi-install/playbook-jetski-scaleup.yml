@@ -3,7 +3,6 @@
   hosts: orchestration
   roles:
     - { role: scale-bootstrap }
-    - { role: add-provisioner }
 
 - hosts: provisioner
   tasks:
@@ -18,6 +17,8 @@
         - worker_count
         - dell_nodes
         - supermicro_nodes
+        - ocp_deploying_node_content
+        - nondeploying_worker_nodes_content
         
 - hosts: provisioner
   roles:
@@ -25,34 +26,34 @@
     - { role: scale-worker }
 
 - name: Finishing IPI on Baremetal Installation 
-  hosts: orchestration
+  hosts: provisioner
   tasks:
     - block:
         - name: Update ocp_nondeplopyed_node_content
           set_fact:
-            ocp_deploying_node_content: "{{ ocp_deploying_node_content | combine({'nodes': ocp_deploying_node_content.nodes|difference(hostvars[groups['provisioner'][0]].failed_nodes)}, recursive=True) }}"
+            ocp_deploying_node_content: "{{ ocp_deploying_node_content | combine({'nodes': ocp_deploying_node_content.nodes|difference(failed_nodes)}, recursive=True) }}"
 
         - name: Update ocp_nondeplopyed_node_content
           set_fact:
-            nondeploying_worker_nodes_content: "{{ nondeploying_worker_nodes_content | combine({'nodes': nondeploying_worker_nodes_content.nodes|union(hostvars[groups['provisioner'][0]].failed_nodes)}, recursive=True) }}"
+            nondeploying_worker_nodes_content: "{{ nondeploying_worker_nodes_content | combine({'nodes': nondeploying_worker_nodes_content.nodes|union(failed_nodes)}, recursive=True) }}"
       when:
-        - hostvars[groups['provisioner'][0]].failed_nodes is defined
-        - hostvars[groups['provisioner'][0]].failed_nodes | length > 0
+        - failed_nodes is defined
+        - failed_nodes | length > 0
         
     - name: Writing Deployed node content to a file
       copy:
-        dest: "{{ ocp_deployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpdeployednodeinv.json"
         content: "{{ ocp_deploying_node_content | to_nice_json }}"
       when: ocp_deploying_node_content.nodes | length > 0   
 
     - name: Writing available non Deployed node content to a file
       copy:
-        dest: "{{ ocp_nondeployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         content: "{{ nondeploying_worker_nodes_content | to_nice_json }}"
       when: nondeploying_worker_nodes_content.nodes | length > 0
 
     - name: Deleting non Deployed node content
       file:
-        dest: "{{ ocp_nondeployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         state: absent
       when: nondeploying_worker_nodes_content.nodes | length == 0
