@@ -1,0 +1,52 @@
+- name: Regather facts for provisioner
+  setup:
+  delegate_to: "{{ groups['provisioner'][0] }}"
+
+- name: check  ocp_deployed_node_inv_path file available
+  stat:
+    path: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpdeployednodeinv.json"
+  register: deploy_node
+  delegate_to: "{{ groups['provisioner'][0] }}"
+
+- name: check ocp_nondeployed_node_inv_path file available
+  stat:
+    path: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
+  register: nondeploy_node
+  delegate_to: "{{ groups['provisioner'][0] }}"
+
+- name: Fail when required JSON files are missing
+  fail:
+    msg: Input JSON - file is missing or No available nodes to scale
+  when: ( not deploy_node.stat.exists ) or ( not nondeploy_node.stat.exists )
+  delegate_to: "{{ groups['provisioner'][0] }}"
+
+- name: read non deployed node file
+  slurp:
+    src: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
+  register: nondeploy_inv
+  delegate_to: "{{ groups['provisioner'][0] }}"
+
+- name: set inventory fact
+  set_fact:
+    ocp_nondeployed_node_content: "{{ nondeploy_inv['content'] | b64decode | from_json }}"
+  delegate_to: "{{ groups['provisioner'][0] }}"
+  delegate_facts: True
+
+- name: read deployed node file
+  slurp:
+    src: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpdeployednodeinv.json"
+  register: deploy_inv
+  delegate_to: "{{ groups['provisioner'][0] }}"
+
+- name: set inventory fact
+  set_fact:
+    ocp_deployed_node_content: "{{ deploy_inv['content'] | b64decode | from_json }}"
+  delegate_to: "{{ groups['provisioner'][0] }}"
+  delegate_facts: True
+
+- name: copy facts
+  set_fact:
+    "{{ item }}": "{{ hostvars[groups['provisioner'][0]][item] }}"
+  with_items:
+    - ocp_deployed_node_content
+    - ocp_nondeployed_node_content

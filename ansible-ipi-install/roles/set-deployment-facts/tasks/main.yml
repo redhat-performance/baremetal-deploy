@@ -18,6 +18,7 @@
     - lab_ipmi_user
     - lab_ipmi_password
     - ocp_deploying_node_content
+    - nondeploying_worker_nodes_content
     - provisioner_type
     - prov_index
 

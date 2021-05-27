@@ -9,8 +9,6 @@
     "{{ item.name }}": "{{ playbook_dir +  '/' + item.path if inventory_hostname == 'localhost' else inventory_tempdir.path + '/' + item.path }}"
   with_items:
     - { name: ocpinv_file, path: ocpinv.json }
-    - { name: ocp_deployed_node_inv_path, path: ocpdeployednodeinv.json }
-    - { name: ocp_nondeployed_node_inv_path, path: ocpnondeployednodeinv.json }
 
 - name: check ocpinv file available
   stat:

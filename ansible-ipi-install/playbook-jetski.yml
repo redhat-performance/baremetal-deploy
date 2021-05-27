@@ -33,22 +33,27 @@
     no_proxy: "{{ no_proxy_list }}"
 
 - name: Finishing IPI on Baremetal Installation 
-  hosts: orchestration
+  hosts: provisioner
   tasks: 
+    - name: Create directory
+      file:
+        state: directory
+        path: "{{ ansible_facts['user_dir'] }}/scale-worker"
+
     - name: Writing Deployed node content to a file
       copy:
-        dest: "{{ ocp_deployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpdeployednodeinv.json"
         content: "{{ ocp_deploying_node_content | to_nice_json }}"
       when: ocp_deploying_node_content.nodes | length > 0   
 
     - name: Writing available non Deployed node content to a file
       copy:
-        dest: "{{ ocp_nondeployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         content: "{{ nondeploying_worker_nodes_content | to_nice_json }}"
       when: nondeploying_worker_nodes_content.nodes | length > 0
 
     - name: Deleting non Deployed node content
       file:
-        dest: "{{ ocp_nondeployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         state: absent
       when: nondeploying_worker_nodes_content.nodes | length == 0 
