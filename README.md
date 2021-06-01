@@ -84,7 +84,7 @@ The purpose served by each role can be summarized as follows:
 * `installer` - Actually drives the OpenShift Installer. This role runs on the provisioner host.
 
 Scale Up worker roles
-* `scale-bootstrap` - This role is similar to **boostrap**, but runs only during scale up worker playbook execution, it is responsible for gathering inventory details from the local file `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`. It validates the input `worker_count` with the available non deployed nodes.
+* `scale-bootstrap` - This role is similar to **boostrap**, but runs only during scale up worker playbook execution, it is responsible for gathering inventory details from the file `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`. It validates the input `worker_count` with the available non deployed nodes.
 * `scale-node-prep` - This role is similar to **shared-labs-prep**, runs only during scale up worker playbook execution, it is responsible for setting up the boot order on the new worker nodes.
 * `scale-worker` - This is the main role which does all openshift operations, it creates BMC scecret, BMH objects for new host and scale worker machinesets. 
 
@@ -213,7 +213,8 @@ The tree structure is shown below:
     │       └── main.yml
     ├── scale-bootstrap
     │   └── tasks
-    │       └── main.yml
+    │       ├── main.yml
+    │       └── 10_load_old_inv.yml
     ├── scale-node-prep
     │   ├── tasks
     │   │   └── main.yml
@@ -542,23 +543,28 @@ Sample `playbook-jetski.yml`:
     no_proxy: "{{ no_proxy_list }}"
 
 - name: Finishing IPI on Baremetal Installation 
-  hosts: orchestration
+  hosts: provisioner
   tasks: 
-    - name: create ocpdeployednodeinv.json file
+    - name: Create directory
+      file:
+        state: directory
+        path: "{{ ansible_facts['user_dir'] }}/scale-worker"
+
+    - name: Writing Deployed node content to a file
       copy:
-        dest: "{{ ocp_deployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpdeployednodeinv.json"
         content: "{{ ocp_deploying_node_content | to_nice_json }}"
       when: ocp_deploying_node_content.nodes | length > 0   
 
-    - name: create ocpnondeployednodeinv.json file
+    - name: Writing available non Deployed node content to a file
       copy:
-        dest: "{{ ocp_nondeployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         content: "{{ nondeploying_worker_nodes_content | to_nice_json }}"
       when: nondeploying_worker_nodes_content.nodes | length > 0
 
-    - name: Delete ocpnondeployednodeinv.json file
+    - name: Deleting non Deployed node content
       file:
-        dest: "{{ ocp_nondeployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         state: absent
       when: nondeploying_worker_nodes_content.nodes | length == 0    
 ```
@@ -574,7 +580,7 @@ $ ansible-playbook -i inventory/jetski/hosts playbook-jetski.yml
 
 ## Verifying Installation
 
-Once the playbook has successfully completed, verify that your environment is up and running. Please keep `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json` files in `ansible-ipi-install` incase if you want to scale up workers later.
+Once the playbook has successfully completed, verify that your environment is up and running. 
 
 1. Log into the provisioner node (typically the first node in you lab assignment)
 
@@ -600,7 +606,7 @@ worker-0.openshift.example.com               Ready    worker          19h   v1.1
 ```
 ### The Ansible `playbook-jetski-scaleup.yml`
 
-This playbook scales up worker nodes to the desired `worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml` make sure to update the worker_count before execution. It must be executed from the same ansible jump host (ansible machine which is used to deploy the fresh cluster using `playbook-jetski.yml`) and from the same directory because it refers to `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) present inside `ansible-ipi-install`directory. 
+This playbook scales up worker nodes to the desired `worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml` make sure to update the worker_count before execution. This playbook reads the current cluster size and available nodes from `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) stored in provisioner node `/home/kni/scale-worker/` directory. 
 
 Sample `playbook-jetski-scaleup.yml`:
 
@@ -610,7 +616,6 @@ Sample `playbook-jetski-scaleup.yml`:
   hosts: orchestration
   roles:
     - { role: scale-bootstrap }
-    - { role: add-provisioner }
 
 - hosts: provisioner
   tasks:
@@ -623,32 +628,48 @@ Sample `playbook-jetski-scaleup.yml`:
         - lab_ipmi_password
         - scale_worker_node
         - worker_count
-
+        - dell_nodes
+        - supermicro_nodes
+        - ocp_deploying_node_content
+        - nondeploying_worker_nodes_content
+        
 - hosts: provisioner
   roles:
-    #    - { role: scale-node-prep }
+    - { role: scale-node-prep }
     - { role: scale-worker }
 
 - name: Finishing IPI on Baremetal Installation 
-  hosts: orchestration
-  tasks: 
-    - name: create ocpdeployednodeinv.json file
+  hosts: provisioner
+  tasks:
+    - block:
+        - name: Update ocp_nondeplopyed_node_content
+          set_fact:
+            ocp_deploying_node_content: "{{ ocp_deploying_node_content | combine({'nodes': ocp_deploying_node_content.nodes|difference(failed_nodes)}, recursive=True) }}"
+
+        - name: Update ocp_nondeplopyed_node_content
+          set_fact:
+            nondeploying_worker_nodes_content: "{{ nondeploying_worker_nodes_content | combine({'nodes': nondeploying_worker_nodes_content.nodes|union(failed_nodes)}, recursive=True) }}"
+      when:
+        - failed_nodes is defined
+        - failed_nodes | length > 0
+        
+    - name: Writing Deployed node content to a file
       copy:
-        dest: "{{ ocp_deployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpdeployednodeinv.json"
         content: "{{ ocp_deploying_node_content | to_nice_json }}"
       when: ocp_deploying_node_content.nodes | length > 0   
 
-    - name: create ocpnondeployednodeinv.json file
+    - name: Writing available non Deployed node content to a file
       copy:
-        dest: "{{ ocp_nondeployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         content: "{{ nondeploying_worker_nodes_content | to_nice_json }}"
       when: nondeploying_worker_nodes_content.nodes | length > 0
 
-    - name: Delete ocpnondeployednodeinv.json file
+    - name: Deleting non Deployed node content
       file:
-        dest: "{{ ocp_nondeployed_node_inv_path }}"
+        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         state: absent
-      when: nondeploying_worker_nodes_content.nodes | length == 0        
+      when: nondeploying_worker_nodes_content.nodes | length == 0
 ```
 
 
@@ -784,7 +805,7 @@ Wait till you the see the cluster back to normal state with reduced worker node,
 This approach will not work if you want to rebuild a node after a successful playbook execution, because after a successful execution `ocpnondeployednodeinv.json` will be update to latest or removed. 
 Re-run might use the update inventory.
 
-### Pulblic Routable API
+### Public Routable API
 
 By default the the Kuberentes API is only accessible from the provisioner node as the cluster does not have any lab routable IPs and the IPs are only routable from within the cluster. Along with your allocation in Scale Lab, you are able to request for  public routable IP addresses, in which case you can use the `routable_api` option to access your baremetal cluster from outside on the lab/provosioner host as long as you are on VPN. To do this, you need to set `routable_api` in `group_vars/all.yml` to `true` and along with that the `inventory/jetski/hosts` has to use the information from http://wiki.rdu2.scalelab.redhat.com/vlans/ for your cloud and look like below.
 
