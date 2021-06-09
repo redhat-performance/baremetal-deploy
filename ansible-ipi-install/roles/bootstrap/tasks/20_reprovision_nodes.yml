@@ -129,7 +129,7 @@
 
         - name: Power on Provisioner if powered off (Dell and not in container)
           shell: |
-            {{ badfish_cmd_container }}{{ provisioner_hostname }} --power-on
+            {{ badfish_cmd }}{{ provisioner_hostname }} --power-on
           when: provisioner_vendor == "dell" and not 'On' in power_state.stdout
 
         - name: Wait for node to be powered on (Dell and not in container)
