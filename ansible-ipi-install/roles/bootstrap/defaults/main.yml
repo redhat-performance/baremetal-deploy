@@ -1,6 +1,6 @@
 dns_server: "{{ '10.11.5.19' if lab_name == 'scale' else '10.19.96.1' }}"
 alias:
-  lab_url: "http://quads11.alias.bos.scalelab.redhat.com"
+  lab_url: "http://quads.alias.bos.scalelab.redhat.com"
   machine_types:
     dell:
       740xd: 
