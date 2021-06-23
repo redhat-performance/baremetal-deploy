@@ -1,41 +1,44 @@
-FROM centos:8
-
-ENV ansible_dir=/root/JetSki/ansible-ipi-install
+FROM quay.io/centos/centos:8
 ENV DISABLE_PODMAN=true
+ENV rhel_version=8
 
-RUN yum -y install python3 --nodocs
-RUN yum -y install gcc platform-python-devel --nodocs # needed for pip build
-RUN pip3 install ansible
-RUN yum -y install epel-release --nodocs
-RUN yum --enablerepo=epel -y install sshpass
-RUN yum -y install openssh-clients --nodocs
-RUN yum -y install git --nodocs
-RUN yum -y install ipmitool --nodocs
-RUN pip3 install jmespath
+ENV ansible_version=<2.10
 
-# Hammercli
-# epel-release is needed, but was installed above.
-RUN yum install -y https://yum.theforeman.org/releases/2.1/el8/x86_64/foreman-release.rpm
-RUN yum install -y https://yum.theforeman.org/releases/2.1/el8/x86_64/rubygem-hammer_cli-2.1.0-1.el8.noarch.rpm 
-RUN yum install -y http://yum.theforeman.org/releases/2.1/el8/x86_64/rubygem-hammer_cli_foreman-2.1.0-2.el8.noarch.rpm
+ENV foreman_version=2.4
+ENV foreman_url=https://yum.theforeman.org/releases/$foreman_version/el$rhel_version/x86_64/foreman-release.rpm
 
-RUN yum install -y rubygem-hammer_cli \
-	rubygem-hammer_cli_foreman
+ENV ipmitool_version=1.8.18-17
+ENV ipmitool_rpm=ipmitool-$ipmitool_version.el$rhel_version.x86_64.rpm
+ENV ipmitool_url=http://mirror.centos.org/centos/$rhel_version/AppStream/x86_64/os/Packages/$ipmitool_rpm
 
-RUN pip3 install j2cli
+RUN dnf -y upgrade && \
+    dnf -y install --nodocs python3 python3-pip python3-dns gcc platform-python-devel openssh-clients git && \
+    dnf -y install --nodocs https://dl.fedoraproject.org/pub/epel/epel-release-latest-$rhel_version.noarch.rpm && \
+    dnf -y install --nodocs --enablerepo=epel sshpass && \
+    dnf -y install --nodocs $ipmitool_url && \
+    dnf -y install --nodocs $foreman_url && \
+    dnf -y install --nodocs rubygem-hammer_cli rubygem-hammer_cli_foreman
 
-# Done with hammercli. Next badfish
-# Source: https://github.com/redhat-performance/badfish/blob/master/Dockerfile
+RUN useradd jetski --home-dir /jetski --create-home --user-group
+USER jetski
+WORKDIR /jetski
 
-RUN git clone https://github.com/redhat-performance/badfish /root/badfish
+ENV PATH=/jetski/.local/bin:${PATH}
+ENV BADFISH_DIR=/jetski/badfish
+ENV JETSKI_DIR=/jetski/JetSki
+ENV ANSIBLE_DIR=${JETSKI_DIR}/ansible-ipi-install
 
-WORKDIR /root/badfish
-RUN pip3 install -r requirements.txt
+RUN git clone --single-branch --branch master https://github.com/redhat-performance/badfish ${BADFISH_DIR} && \
+    git --git-dir ${BADFISH_DIR}/.git show-ref --verify refs/heads/master && \
+    git clone --single-branch --branch master https://github.com/redhat-performance/JetSki.git ${JETSKI_DIR} && \
+    git --git-dir ${JETSKI_DIR}/.git show-ref --verify refs/heads/master
 
-ADD https://api.github.com/repos/redhat-performance/JetSki/git/refs/heads/master /root/JetSki-version.json
-RUN git clone --single-branch --branch master https://github.com/redhat-performance/JetSki.git /root/JetSki
+RUN python3 -m pip install --user --upgrade pip && \
+    python3 -m pip install --user "ansible${ansible_version}" j2cli jmespath netaddr && \
+    python3 -m pip install --user -r "${BADFISH_DIR}/requirements.txt" && \
+    ansible-galaxy collection install ansible.utils containers.podman
 
-# Done. Now run it.
-ENTRYPOINT ansible-playbook -i $ansible_dir/inventory/jetski/hosts $ansible_dir/playbook-jetski.yml
-#ENTRYPOINT /bin/bash
+WORKDIR ${BADFISH_DIR}
 
+COPY entrypoint.sh /
+ENTRYPOINT ["/entrypoint.sh"]
