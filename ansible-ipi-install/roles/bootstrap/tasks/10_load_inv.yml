@@ -357,6 +357,7 @@
   copy:
     dest: "/tmp/metadata.txt"
     content: "{{ lookup('template', 'node_inv.j2') | to_nice_json  }}"
+  become: true
   vars:
     query: nodes[{{worker_index}}:]
     node: worker
