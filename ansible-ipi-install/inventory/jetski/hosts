@@ -101,6 +101,9 @@ redfish_inspection=false
 # By default this is disabled and set to false. Set ovn_hybird_plugin to true to use BigIP ingress in a cluster.
 ovn_hybird_plugin=true
 
+# (Optional) Enable local gateway mode with OVN
+ovn_local_gateway=true
+
 ######################################
 # Vars regarding install-config.yaml #
 ######################################
