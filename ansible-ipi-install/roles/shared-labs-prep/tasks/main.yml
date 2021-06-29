@@ -348,6 +348,17 @@
       when:
         - network_type == "OVNKubernetes" 
         - ovn_hybird_plugin | bool     
+
+    - name: Enable OVN local gateway mode
+      copy:
+        src: "{{ item }}"
+        dest: "{{ manifest_path }}/{{ item }}"
+        mode: 0644
+      with_items:
+        - "99_local_gateway_ovn.yaml"
+      when:
+        - network_type == "OVNKubernetes"
+        - ovn_local_gateway is defined and ovn_local_gateway | bool
   delegate_to: localhost
 
 - name: Copy the approve_csr script from the local machine to the remote server
