@@ -20,7 +20,7 @@
 
 - name: set os_install
   set_fact:
-    os_install: "{{ (rebuild_provisioner or rhel_version is version('8.3', '<')) | ternary('RHEL 8.3', false) }}"
+    os_install: "{{ (rebuild_provisioner or rhel_version is version('8.2', '<')) | ternary('RHEL 8.2', false) }}"
 
 - name: Determine if containers should be used
   set_fact:
@@ -203,4 +203,17 @@
       register: node_reachable
       retries: 100
       until: node_reachable is succeeded
+
+    - block:
+        - name: Update repo to RHEL 8.4
+          shell: |
+            sshpass -p {{ ansible_ssh_pass }}  ssh -o 'PreferredAuthentications=password' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -q root@{{ provisioner_hostname }} './update-latest-rhel-release.sh 8.4'
+
+        - name: Run update
+          shell: |
+            sshpass -p {{ ansible_ssh_pass }}  ssh -o 'PreferredAuthentications=password' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -q root@{{ provisioner_hostname }} 'dnf -y update'
+      when:
+        - ( version.split('.')[0]|int == 4 ) or ( version.split('.')[0] == 'latest-4' )
+        - version.split('.')[1]|int >= 8
+        - '8.4' not in os_install
   when: ((os_install is defined) and (os_install != false)) or rebuild_provisioner
