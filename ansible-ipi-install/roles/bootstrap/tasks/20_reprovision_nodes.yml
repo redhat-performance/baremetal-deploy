@@ -212,8 +212,20 @@
         - name: Run update
           shell: |
             sshpass -p {{ ansible_ssh_pass }}  ssh -o 'PreferredAuthentications=password' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -q root@{{ provisioner_hostname }} 'dnf -y update'
+
+        - name: Reboot
+          shell: |
+            sshpass -p {{ ansible_ssh_pass }}  ssh -o 'PreferredAuthentications=password' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -q root@{{ provisioner_hostname }} 'systemctl reboot'
+
+        - name: waiting for the provisioner to be available
+          wait_for:
+            port: 22
+            host: "{{ provisioner_hostname }}"
+            search_regex: OpenSSH
+            timeout: 30
+          register: node_rebooted
+          retries: 100
+          until: node_rebooted is succeeded
       when:
-        - ( version.split('.')[0]|int == 4 ) or ( version.split('.')[0] == 'latest-4' )
-        - version.split('.')[1]|int >= 8
         - '8.4' not in os_install
   when: ((os_install is defined) and (os_install != false)) or rebuild_provisioner
