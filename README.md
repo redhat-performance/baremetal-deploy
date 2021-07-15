@@ -106,7 +106,6 @@ The tree structure is shown below:
 ├── playbook-jetski.yml
 ├── playbook-jetski-scaleup.yml
 ├── playbook.yml
-├── prep_kni_user.yml
 └── roles
     ├── add-provisioner
     │   └── tasks
