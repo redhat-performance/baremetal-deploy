@@ -14,13 +14,13 @@
 
 - name: set rhel version
   set_fact:
-    rhel_version: "{{ rhel_release.stdout.split()[-2] }}"
+    rhel_current_version: "{{ rhel_release.stdout.split()[-2] }}"
   ignore_errors: true
   when: rhel_release.stdout | length > 0
 
 - name: set os_install
   set_fact:
-    os_install: "{{ (rebuild_provisioner or rhel_version is version('8.2', '<')) | ternary('RHEL 8.2', false) }}"
+    os_install: "{{ (rebuild_provisioner or rhel_current_version is version(rhel_foreman_version, '<')) | ternary(true, false) }}"
 
 - name: Determine if containers should be used
   set_fact:
@@ -49,11 +49,11 @@
             chdir: "{{ role_path}}/files/"
 
         - name: update host to install new os (scale lab) in container
-          shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
+          shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem 'RHEL {{ rhel_foreman_version }}' --overwrite 1
           when: lab_name == "scale"
 
         - name: update host to install new os (alias lab) in container
-          shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium 'rhel_local' --partition-table 'ALIAS-Partition' --overwrite 1
+          shell: podman run hammercli hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }}  host update --name {{ provisioner_hostname }} --build 1 --operatingsystem 'RHEL {{ rhel_foreman_version }}' --medium 'rhel_local' --partition-table 'ALIAS-Partition' --overwrite 1
           when: lab_name == "alias"
 
         - name: Check power state of provisioner (Dell and in container)
@@ -114,11 +114,11 @@
           shell: hammer --fetch-ca-cert {{ foreman_url }}
 
         - name: update host to install new os (scale lab)
-          shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --overwrite 1
+          shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem 'RHEL {{ rhel_foreman_version }}' --overwrite 1
           when: lab_name == "scale"
 
         - name: update host to install new os (alias lab)
-          shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem '{{ os_install }}' --medium 'rhel_local' --partition-table 'ALIAS-Partition' --overwrite 1
+          shell: hammer -u {{ cloud_name }} -p {{ lab_ipmi_password }} -s {{ foreman_url }} host update --name {{ provisioner_hostname }} --build 1 --operatingsystem 'RHEL {{ rhel_foreman_version }}' --medium 'rhel_local' --partition-table 'ALIAS-Partition' --overwrite 1
           when: lab_name == "alias"
 
         - name: Check power state of provisioner (Dell and not in container)
@@ -203,29 +203,6 @@
       register: node_reachable
       retries: 100
       until: node_reachable is succeeded
+  when: (os_install is defined and os_install) or rebuild_provisioner
 
-    - block:
-        - name: Update repo to RHEL 8.4
-          shell: |
-            sshpass -p {{ ansible_ssh_pass }}  ssh -o 'PreferredAuthentications=password' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -q root@{{ provisioner_hostname }} './update-latest-rhel-release.sh 8.4'
 
-        - name: Run update
-          shell: |
-            sshpass -p {{ ansible_ssh_pass }}  ssh -o 'PreferredAuthentications=password' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -q root@{{ provisioner_hostname }} 'dnf -y update'
-
-        - name: Reboot
-          shell: |
-            sshpass -p {{ ansible_ssh_pass }}  ssh -o 'PreferredAuthentications=password' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -q root@{{ provisioner_hostname }} 'systemctl reboot'
-
-        - name: waiting for the provisioner to be available
-          wait_for:
-            port: 22
-            host: "{{ provisioner_hostname }}"
-            search_regex: OpenSSH
-            timeout: 30
-          register: node_rebooted
-          retries: 100
-          until: node_rebooted is succeeded
-      when:
-        - '8.4' not in os_install
-  when: ((os_install is defined) and (os_install != false)) or rebuild_provisioner
