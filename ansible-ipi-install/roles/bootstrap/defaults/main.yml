@@ -1,3 +1,6 @@
+---
+rhel_required_version: 8.4
+rhel_foreman_version: 8.2
 dns_server: "{{ '10.11.5.19' if lab_name == 'scale' else '10.19.96.1' }}"
 alias:
   lab_url: "http://quads.alias.bos.scalelab.redhat.com"

@@ -20,3 +20,35 @@
     ansible_ssh_private_key_file: "{{ ansible_ssh_key }}"
     ansible_user: "root"
     ansible_python_interpreter: "{{ python_interpreter }}"
+
+- block:
+    - name: Update repo
+      shell: ./update-latest-rhel-release.sh {{ rhel_required_version }}
+      args:
+        chdir: /root/
+      delegate_to: "{{ provisioner_hostname }}"
+
+    - name: Run update
+      dnf:
+        name: "*"
+        state: latest
+      delegate_to: "{{ provisioner_hostname }}"
+
+
+    - name: Reboot
+      reboot:
+      delegate_to: "{{ provisioner_hostname }}"
+
+    - name: waiting for the provisioner to be available
+      wait_for:
+        port: 22
+        host: "{{ provisioner_hostname }}"
+        search_regex: OpenSSH
+        timeout: 30
+      register: node_rebooted
+      retries: 100
+      until: node_rebooted is succeeded
+  when:
+    - rhel_current_version is version(rhel_required_version, '<') or
+      os_install
+
