@@ -13,7 +13,7 @@ version: "4.4.4"
 # Enter whether the build should use 'dev' (nightly builds) or 'ga' for Generally Available version of OpenShift
 # Empty value results in playbook failing with error message.
 build: "ga"
-# Your pull secret, as is. https://cloud.redhat.com/openshift/install
+# Your pull secret, as is. https://cloud.redhat.com/openshift/install (Do not add any quotes)
 pullsecret:
 # This variable is used to point to the foreman server that is used to reimage nodes. This variables is useful in two cases
 # 1. When the first node in your allocation (provisioning host) is not having RHEL 8.1 OS, it is automatically rebuilt with 
