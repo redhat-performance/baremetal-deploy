@@ -1,2 +1,2 @@
 [keyfile]
-unmanaged-devices=interface-name:{{ item }}
+unmanaged-devices={% for nic in disable_nics %}interface-name:{{ nic }}{{ ";" if not loop.last }}{% endfor %}
