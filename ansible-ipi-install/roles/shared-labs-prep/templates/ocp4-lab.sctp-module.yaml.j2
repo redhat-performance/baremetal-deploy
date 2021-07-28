@@ -6,7 +6,8 @@ metadata:
 spec:
   config:
     ignition:
-{% if ((version.split('.')[0]|int == 4 or version.split('.')[0] == 'latest-4') and (version.split('.')[1]|int >= 6)) %}
+{% if (version.split('.')[0]|int == 4 or version.split('.')[0] == 'latest-4' or version.split('.')[0] == 'stable-4') %}
+{% if (version.split('.')[1]|int >= 6) %}    
       version: 3.1.0
     storage:
       files:
@@ -20,7 +21,7 @@ spec:
           overwrite: true
           contents:
             source: data:,sctp
-{% elif ((version.split('.')[0]|int == 4 or version.split('.')[0] == 'latest-4') and (version.split('.')[1]|int < 6)) %}
+{% elif (version.split('.')[1]|int < 6) %}
       version: 2.2.0
     storage:
       files:
@@ -35,4 +36,5 @@ spec:
           filesystem: root
           mode: 420
           path: /etc/modules-load.d/sctp-load.conf
+{% endif %}
 {% endif %}
