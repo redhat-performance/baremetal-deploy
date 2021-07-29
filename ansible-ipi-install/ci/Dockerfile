@@ -2,11 +2,12 @@ FROM quay.io/centos/centos:8
 
 ENV DISABLE_PODMAN=true
 
-RUN dnf -y install python3 gcc platform-python-devel epel-release --nodocs
-RUN dnf --enablerepo=epel -y install sudo sshpass openssh-clients git ipmitool ansible --nodocs
+RUN dnf -y install python3.8 gcc platform-python-devel epel-release --nodocs
+RUN dnf --enablerepo=epel -y install sudo sshpass openssh-clients git ipmitool ansible python3-dns python3-netaddr ipmitool --nodocs
 
-RUN pip3 install update
-RUN pip3 install jmespath psycopg2-binary apache-airflow[kubernetes] j2cli openshift netaddr
+RUN pip3.8 install update
+RUN pip3.8 install click==7.1.2 idna==2.10 kubernetes==11.0.0 openshift==0.11.2 # due to apacke-airflow dependency version limit
+RUN pip3.8 install jmespath psycopg2-binary apache-airflow[kubernetes] apache-airflow-providers-elasticsearch j2cli openshift netaddr
 
 # Hammercli
 # epel-release is needed, but was installed above.
@@ -22,7 +23,7 @@ RUN dnf install -y rubygem-hammer_cli rubygem-hammer_cli_foreman
 RUN git clone https://github.com/redhat-performance/badfish /root/badfish
 
 WORKDIR /root/badfish
-RUN pip3 install -r requirements.txt
+RUN pip3.8 install -r requirements.txt
 
 # Commented JetSki clone 
 # ADD https://api.github.com/repos/redhat-performance/JetSki/git/refs/heads/master /root/JetSki-version.json
@@ -52,7 +53,16 @@ WORKDIR ${AIRFLOW_HOME}
 RUN usermod -g 0 airflow -G ${AIRFLOW_GID}
 RUN echo "airflow ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
+RUN update-alternatives --remove python /usr/libexec/no-python
+RUN update-alternatives --remove python3 /usr/bin/python3.6
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+
+RUN curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+RUN chmod +x ./kubectl
+RUN mv ./kubectl /usr/local/bin/kubectl
+
 USER airflow
+ENV AIRFLOW_HOME=/opt/airflow
 
 # Done. Now run it.
 # ENTRYPOINT ansible-playbook -i $ansible_dir/inventory/jetski/hosts $ansible_dir/playbook-jetski.yml

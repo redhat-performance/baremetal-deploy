@@ -1,3 +1,7 @@
+- include_role:
+    name: bootstrap
+    tasks_from: 01_install_packages.yml
+
 - name: Create temporary directory for inventory
   tempfile:
     state: directory
@@ -10,6 +14,65 @@
   with_items:
     - { name: ocpinv_file, path: ocpinv.json }
 
+- name: check ocpinv file available
+  stat:
+      path: "{{ ocpinv_file }}"
+  register: st
+
+- name: Download ocpinv.json
+  block:
+    - uri:
+        url: "{{ alias.lab_url }}/cloud/{{ cloud_name }}_ocpinventory.json"
+        return_content: yes
+      register: response
+    
+    - set_fact:
+        ocpinv_content: "{{ response.json }}"
+  when: lab_name == "alias"
+
+- name: Download ocpinv.json
+  block:
+    - uri:
+        url: "{{ scale.lab_url }}/cloud/{{ cloud_name }}_ocpinventory.json"
+        return_content: yes
+      register: response
+    
+    - set_fact:
+        ocpinv_content: "{{ response.json }}"
+  when: lab_name == "scale"
+
+- name: Checking for inventory conflicts
+  block:
+    - name: read inv env file
+      slurp:
+        src: "{{ ocpinv_file }}"
+      register: invfile
+
+    - name: set User inventory fact
+      set_fact:
+        ocpinv_user_content: "{{ invfile['content'] | b64decode | from_json }}"
+
+    - name: Get node list
+      set_fact:
+          gold_inv: "{{ ocpinv_content | json_query('nodes[*].pm_addr')  }}"        # QUADS inventory
+          user_inv: "{{ ocpinv_user_content | json_query('nodes[*].pm_addr')  }}"   # Local user content
+
+    - name: verify
+      set_fact:
+          compare_inv: "{{ user_inv | difference(gold_inv) }}"
+
+    - name: Fail when there is an inventory conflicts
+      fail:
+        msg: Existing User inventory - ocpinv.json is not matching with QUADS inventory for {{ cloud_name }}, please remove existing ocpinv.json if deploying a new cloud. 
+      when: compare_inv | length != 0      
+  when: st.stat.exists
+
+- name: create ocpinv.json file
+  copy:
+    dest: "{{ ocpinv_file }}"
+    content: "{{ ocpinv_content | to_nice_json }}"
+  when: not st.stat.exists
+  
 - name: read inv env file
   slurp:
     src: "{{ ocpinv_file }}"

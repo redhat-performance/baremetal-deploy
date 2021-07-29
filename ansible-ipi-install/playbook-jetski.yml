@@ -56,4 +56,13 @@
       file:
         dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         state: absent
-      when: nondeploying_worker_nodes_content.nodes | length == 0 
+      when: nondeploying_worker_nodes_content.nodes | length == 0
+
+    - name: Copy kubeconfig file from provisioner
+      fetch:
+        src: "{{ ansible_facts['user_dir'] }}/clusterconfigs/auth/{{ item }}"
+        dest: "/tmp/"
+        flat: yes
+      with_items:
+        - "kubeconfig"
+        - "kubeadmin-password"

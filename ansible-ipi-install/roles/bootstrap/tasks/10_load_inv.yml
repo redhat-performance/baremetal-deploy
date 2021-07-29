@@ -80,31 +80,32 @@
       set_fact:
         ocpinv_content: "{{ finalinv['content'] | b64decode | from_json }}"
 
-- name: set provisioning host and ocp cluster info
-  block:
-    - name: set provisioner hostname & index
-      set_fact:
-        provisioner_hostname: "{{ ocpinv_content.nodes[0].pm_addr | replace('mgmt-','') | replace('-drac', '') }}"
-        prov_index: 0
-      when: provisioner_hostname is not defined or provisioner_hostname == ""
-
-    - block:
-      - name: set 'pm_addr' for the specified hostname
-        set_fact:
-          prov_node: "mgmt-{{ provisioner_hostname }}"
-
-      - name: set provisioner hostname index
-        set_fact:
-          prov_index: "{{ lookup('ansible.utils.index_of', data=ocpinv_content.nodes, test='eq', key='pm_addr', value=prov_node) }}"
-      when: provisioner_hostname is defined and provisioner_hostname != ""    
-
-    - name: set ocp_node_content
-      set_fact:
-          ocp_node_content: |
-              {% set a=ocpinv_content.pop('nodes') %}
-              {{ ocpinv_content | combine({'nodes': a|difference([a[prov_index|int]])}, recursive=True) }}
+- name: set provisioner hostname & index
+  set_fact:
+    provisioner_hostname: "{{ ocpinv_content.nodes[0].pm_addr | replace('mgmt-','') | replace('-drac', '') }}"
+    prov_index: 0
+  when: provisioner_hostname is not defined or provisioner_hostname == ""
 
 - block:
+  - name: set 'pm_addr' for the specified hostname
+    set_fact:
+      prov_node: "mgmt-{{ provisioner_hostname }}"
+
+  - name: set provisioner hostname index
+    set_fact:
+      prov_index: "{{ lookup('ansible.utils.index_of', data=ocpinv_content.nodes, test='eq', key='pm_addr', value=prov_node) }}"
+  when: provisioner_hostname is defined and provisioner_hostname != ""    
+
+- name: set ocp_node_content
+  set_fact:
+      ocp_node_content: |
+          {% set a=ocpinv_content.pop('nodes') %}
+          {{ ocpinv_content | combine({'nodes': a|difference([a[prov_index|int]])}, recursive=True) }}
+
+- block:
+    - debug: 
+        var: provisioner_hostname
+
     - name: set provisioner_type
       set_fact:
         provisioner_type: "{{ (lab_name == 'scale') | ternary(provisioner_hostname.split('.')[0].split('-')[3], provisioner_hostname.split('.')[0].split('-')[2]) }}"
