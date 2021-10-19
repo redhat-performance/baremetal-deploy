@@ -360,6 +360,17 @@
         - network_type == "OVNKubernetes"
         - ovn_local_gateway is defined and ovn_local_gateway | bool
 
+    - name: Enable OVN shared gateway mode with ICNI2
+      copy:
+        src: "{{ item }}"
+        dest: "{{ manifest_path }}/{{ item }}"
+        mode: 0644
+      with_items:
+        - "99_shared_gateway_ovn_icni2.yaml"
+      when:
+        - network_type == "OVNKubernetes"
+        - ovn_icni2 is defined and ovn_icni2 | bool
+
     - name: Copy SCTP module manifest files
       template:
         src: "{{ item }}"
