@@ -1,4 +1,14 @@
 ---
+- name: Fail if both ovn_local_gateway and ovn_icni2 variables are true.
+  fail:
+    msg: "Both ovn_local_gateway and ovn_icni2 are true. Please choose one."
+  when:
+    - ovn_local_gateway is defined and ovn_local_gateway | bool
+    - ovn_icni2 is defined and ovn_icni2 | bool
+  tags:
+  - always
+  - validation
+
 - name: Randomize cluster name
   set_fact:
     cluster: "{{ cluster }}{{ 1000 | random }}"
