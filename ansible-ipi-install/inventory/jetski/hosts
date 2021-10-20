@@ -113,7 +113,7 @@ ovn_hybird_plugin=true
 ovn_local_gateway=true
 
 # (Optional) Enable shared gateway mode with ICNI2 with OVN
-ovn_icni2=true
+ovn_icni2=false
 
 # (Optional) Enable SCTP in the cluster
 sctp=false
