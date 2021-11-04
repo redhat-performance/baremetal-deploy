@@ -8,6 +8,16 @@
   tags:
   - always
   - validation
+  
+- name: Fail if ovn_icni2 is enabled and the corresponding OCP version is not valid.
+  fail:
+    msg: "For ovn_icni2 to be enabled OCP version has to be >= 4.8."
+  when:
+    - ovn_icni2 is defined and ovn_icni2 | bool
+    - (release_version.split('.')[0]|int == 4) and (release_version.split('.')[1]|int < 8)
+  tags:
+  - always
+  - validation
 
 - name: Randomize cluster name
   set_fact:
