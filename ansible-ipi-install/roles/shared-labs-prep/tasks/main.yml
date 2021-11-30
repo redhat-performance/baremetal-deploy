@@ -52,7 +52,7 @@
 
     - name: detect python version
       shell: |
-        {{ python_interpreter }} --version | awk '{print $2}'
+        /usr/bin/python3 --version | awk '{print $2}'
       register: python_version
 
     - name: Include library
