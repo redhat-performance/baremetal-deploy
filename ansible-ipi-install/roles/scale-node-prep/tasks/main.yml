@@ -30,6 +30,18 @@
     virtualenv_command: /usr/bin/python3 -m venv
     virtualenv: "{{ badfish_venv }}"
 
+- name: detect python version
+  shell: |
+    /usr/bin/python3 --version | awk '{print $2}'
+  register: python_version
+
+- name: Include library
+  shell:
+    chdir: "{{ badfish_tempdir.path }}"
+    cmd: |
+      source {{ badfish_venv }}/bin/activate
+      ln -s {{ badfish_tempdir.path }}/src/helpers/ {{ badfish_venv }}/lib/python{{ python_version.stdout.split('.')[0] }}.{{ python_version.stdout.split('.')[1] }}/site-packages/helpers
+
 - name: Clean network interfaces created by lab automation
   shell: |
     /root/clean-interfaces.sh --nuke
