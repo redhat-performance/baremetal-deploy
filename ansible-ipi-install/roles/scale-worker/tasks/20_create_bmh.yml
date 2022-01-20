@@ -15,32 +15,33 @@
   loop_control:
     extended: yes
 
-- name: wait for 600 seconds before checking for BareMetalHost state
-  wait_for:
-    timeout: 600
-
-- name: Wait for BareMetalHost nodes to get into Ready state
-  environment:
-    KUBECONFIG: "{{ kubeconfig_file }}"
-  shell: |
-    oc -n openshift-machine-api get bmh/{{ item.host_name }} --template={{'{{'}}.status.provisioning.state{{'}}'}}
-  register: bmh_node_ready
-  retries: 30
-  delay: 60
-  until: bmh_node_ready.stdout.find("ready") != -1
-  changed_when: bmh_node_ready.stdout_lines|length > 0
-  ignore_errors: true
-  loop: "{{ scale_worker_node.nodes }}"
-  loop_control:
-    extended: yes
-
 - name: Set failed_nodes fact
   set_fact:
     failed_nodes: []
 
-- name: Find out if any failed nodes
-  set_fact:
-    failed_nodes: "{{ failed_nodes + [ item.item ] }}"
-  when: item.failed 
-  with_items: "{{ bmh_node_ready.results }}"
+- block:
+  - name: wait for 600 seconds before checking for BareMetalHost state
+    wait_for:
+      timeout: 600
 
+  - name: Wait for BareMetalHost nodes to get into Ready state
+    environment:
+      KUBECONFIG: "{{ kubeconfig_file }}"
+    shell: |
+      oc -n openshift-machine-api get bmh/{{ item.host_name }} --template={{'{{'}}.status.provisioning.state{{'}}'}}
+    register: bmh_node_ready
+    retries: 60
+    delay: 60
+    until: bmh_node_ready.stdout.find("ready") != -1
+    changed_when: bmh_node_ready.stdout_lines|length > 0
+    ignore_errors: true
+    loop: "{{ scale_worker_node.nodes }}"
+    loop_control:
+      extended: yes
+
+  - name: Find out if any failed nodes
+    set_fact:
+      failed_nodes: "{{ failed_nodes + [ item.item ] }}"
+    when: item.failed 
+    with_items: "{{ bmh_node_ready.results }}"
+  when: version.split('.')[1]|int <= 7

@@ -140,6 +140,20 @@
   vars:
     query: nodes[0:{{scale_worker_index}}]
 
+- set_fact:
+    quit_play: false
+
+- block:
+    - debug:
+        msg: "Desired Worker count is already met, exiting playbook"
+
+    - set_fact: 
+        quit_play: true
+
+    - name: Quit playbook-jetski-scaleup
+      meta: end_play
+  when: worker_count | int == current_worker_count | int
+
 # Make sure required number of workers are available (useful when user passes wrong worker_count value)
 - name: Fail when required number of worker nodes cannot be scaled
   fail:

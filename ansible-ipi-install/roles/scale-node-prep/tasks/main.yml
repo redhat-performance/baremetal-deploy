@@ -59,6 +59,8 @@
   until: power_on_workers is succeeded
   retries: 3
   delay: 30
+  tags:
+    - bootorder
 
 - name: Dell Boot Order tasks (Dell)
   block:
