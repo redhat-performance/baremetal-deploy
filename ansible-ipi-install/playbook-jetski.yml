@@ -44,19 +44,11 @@
       copy:
         dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpdeployednodeinv.json"
         content: "{{ ocp_deploying_node_content | to_nice_json }}"
-      when: ocp_deploying_node_content.nodes | length > 0   
 
     - name: Writing available non Deployed node content to a file
       copy:
         dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         content: "{{ nondeploying_worker_nodes_content | to_nice_json }}"
-      when: nondeploying_worker_nodes_content.nodes | length > 0
-
-    - name: Deleting non Deployed node content
-      file:
-        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
-        state: absent
-      when: nondeploying_worker_nodes_content.nodes | length == 0
 
     - name: Copy kubeconfig file from provisioner
       fetch:

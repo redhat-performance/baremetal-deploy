@@ -2,10 +2,18 @@
 - name: IPI on Baremetal Installation Playbook -- Red Hat Shared Labs JetSki Edition
   hosts: orchestration
   roles:
-    - { role: scale-bootstrap }
+    - role: scale-bootstrap
 
 - hosts: provisioner
   tasks:
+    - block:
+        - set_fact: 
+            quit_play: true
+
+        - name: Quit playbook-jetski-scaleup
+          meta: end_play
+      when: hostvars[groups['orchestration'][0]]['quit_play'] | bool
+
     - name: set facts needed for OCP deployment on the provisioning host
       set_fact:
         "{{ item }}": "{{ hostvars[groups['orchestration'][0]][item] }}"
@@ -19,11 +27,14 @@
         - supermicro_nodes
         - ocp_deploying_node_content
         - nondeploying_worker_nodes_content
+        - quit_play
         
 - hosts: provisioner
   roles:
-    - { role: scale-node-prep }
-    - { role: scale-worker }
+    - role: scale-node-prep
+      when: not quit_play | bool
+    - role: scale-worker
+      when: not quit_play | bool
 
 - name: Finishing IPI on Baremetal Installation 
   hosts: provisioner
@@ -37,6 +48,7 @@
           set_fact:
             nondeploying_worker_nodes_content: "{{ nondeploying_worker_nodes_content | combine({'nodes': nondeploying_worker_nodes_content.nodes|union(failed_nodes)}, recursive=True) }}"
       when:
+        - not quit_play | bool
         - failed_nodes is defined
         - failed_nodes | length > 0
         
@@ -44,16 +56,13 @@
       copy:
         dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpdeployednodeinv.json"
         content: "{{ ocp_deploying_node_content | to_nice_json }}"
-      when: ocp_deploying_node_content.nodes | length > 0   
+      when: 
+        - not quit_play | bool
 
     - name: Writing available non Deployed node content to a file
       copy:
         dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
         content: "{{ nondeploying_worker_nodes_content | to_nice_json }}"
-      when: nondeploying_worker_nodes_content.nodes | length > 0
+      when: 
+        - not quit_play | bool
 
-    - name: Deleting non Deployed node content
-      file:
-        dest: "{{ ansible_facts['user_dir'] }}/scale-worker/ocpnondeployednodeinv.json"
-        state: absent
-      when: nondeploying_worker_nodes_content.nodes | length == 0

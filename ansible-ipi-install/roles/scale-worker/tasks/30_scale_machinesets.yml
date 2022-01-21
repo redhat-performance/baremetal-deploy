@@ -12,9 +12,9 @@
   shell: |
     oc -n openshift-machine-api scale --replicas={{ worker_count | int - failed_nodes | length }} machineset {{ worker_machineset.stdout }}
 
-- name: wait for 20 minutes before checking for Machinesets 
+- name: wait for 30 minutes before checking for Machinesets 
   wait_for:
-    timeout: 1200
+    timeout: 1800
 
 - name: Wait for machineset to be available
   environment:
@@ -22,10 +22,11 @@
   shell: |
     oc -n openshift-machine-api get machineset/{{ worker_machineset.stdout }} --template={{'{{'}}.status.availableReplicas{{'}}'}}
   register: mcp_machineset_ready
-  retries: 30
+  retries: 5
   delay: 60
   until: mcp_machineset_ready.stdout == "{{ worker_count | int - failed_nodes | length }}"
   changed_when: mcp_machineset_ready.stdout == "{{ worker_count | int - failed_nodes | length }}"
+  ignore_errors: true
   
 - name: Wait for machineset to be ready
   environment:
@@ -33,7 +34,29 @@
   shell: |
     oc -n openshift-machine-api get machineset/{{ worker_machineset.stdout }} --template={{'{{'}}.status.readyReplicas{{'}}'}}
   register: mcp_machineset_ready
-  retries: 30
+  retries: 5
   delay: 60
   until: mcp_machineset_ready.stdout == "{{ worker_count | int - failed_nodes | length }}"
   changed_when: mcp_machineset_ready.stdout == "{{ worker_count | int - failed_nodes | length }}"
+  ignore_errors: true
+
+- name: Wait for workers to be Ready
+  environment:
+    KUBECONFIG: "{{ kubeconfig_file }}"
+  shell: |
+    oc get nodes --no-headers | grep worker | wc -l 
+  register: worker_ready
+  retries: 180
+  delay: 120
+  until: worker_ready.stdout == "{{ worker_count | int - failed_nodes | length }}"
+  changed_when: worker_ready.stdout == "{{ worker_count | int - failed_nodes | length }}"
+  ignore_errors: true
+
+- name: Delete failed BareMetalHost
+  environment:
+    KUBECONFIG: "{{ kubeconfig_file }}"
+  shell: |
+    oc delete -f {{ scaling_dir }}/{{ item.host_name }}-bmh.yaml
+  loop: "{{ failed_nodes }}"
+  loop_control:
+    extended: yes

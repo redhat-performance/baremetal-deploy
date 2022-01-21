@@ -405,3 +405,14 @@
   debug:
     var: approve_csr_result
   when: worker_count != 0
+
+- name: Power off remaining workers
+  ipmi_power:
+    name: "{{ item.pm_addr }}"
+    user: "{{ lab_ipmi_user }}"
+    password: "{{ lab_ipmi_password }}"
+    state: off
+  with_items: "{{ nondeploying_worker_nodes_content.nodes }}"
+  async: 300
+  poll: 0  
+  when: power_off_lab | default(false) | bool 
