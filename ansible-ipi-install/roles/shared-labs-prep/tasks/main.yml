@@ -1,4 +1,24 @@
 ---
+- name: Fail if both ovn_local_gateway and ovn_icni2 variables are true.
+  fail:
+    msg: "Both ovn_local_gateway and ovn_icni2 are true. Please choose one."
+  when:
+    - ovn_local_gateway is defined and ovn_local_gateway | bool
+    - ovn_icni2 is defined and ovn_icni2 | bool
+  tags:
+  - always
+  - validation
+  
+- name: Fail if ovn_icni2 is enabled and the corresponding OCP version is not valid.
+  fail:
+    msg: "For ovn_icni2 to be enabled OCP version has to be >= 4.8."
+  when:
+    - ovn_icni2 is defined and ovn_icni2 | bool
+    - (release_version.split('.')[0]|int == 4) and (release_version.split('.')[1]|int < 8)
+  tags:
+  - always
+  - validation
+
 - name: Randomize cluster name
   set_fact:
     cluster: "{{ cluster }}{{ 1000 | random }}"
@@ -371,6 +391,17 @@
       when:
         - network_type == "OVNKubernetes"
         - ovn_local_gateway is defined and ovn_local_gateway | bool
+
+    - name: Enable OVN shared gateway mode with ICNI2
+      copy:
+        src: "{{ item }}"
+        dest: "{{ manifest_path }}/{{ item }}"
+        mode: 0644
+      with_items:
+        - "99_shared_gateway_ovn_icni2.yaml"
+      when:
+        - network_type == "OVNKubernetes"
+        - ovn_icni2 is defined and ovn_icni2 | bool
 
     - name: Copy SCTP module manifest files
       template:
