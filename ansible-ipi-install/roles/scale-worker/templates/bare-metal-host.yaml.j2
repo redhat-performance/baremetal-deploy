@@ -7,8 +7,16 @@ metadata:
 spec:
   online: true
   bmc:
+{% if redfish_inspection | bool %}
+    # address: "redfish://{{ item.pm_addr }}/redfish/v1/Systems/1"
+    address: "redfish://{{ item.pm_addr }}/redfish/v1/Systems/System.Embedded.1"
+    disableCertificateVerification: {{ disable_bmc_certificate_verification }}
+    username: "{{ item.pm_user }}"
+    password: "{{ item.pm_password }}"
+{% else %}
     address: "ipmi://{{ item.pm_addr }}:623"
     credentialsName: "{{ item.host_name }}-bmc-secret"
+{% endif %}
   hardwareProfile: unknown
   bootMACAddress: "{{ item.prov_mac }}"
 {% if bootmode is defined and bootmode == 'legacy' %}

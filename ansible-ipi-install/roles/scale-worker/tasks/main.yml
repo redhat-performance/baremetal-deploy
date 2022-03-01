@@ -25,6 +25,7 @@
     var: approve_csr_result
 
 - include_tasks: 10_bmc_secrets.yml
+  when: not redfish_inspection | bool
 
 - include_tasks: 20_create_bmh.yml
 
