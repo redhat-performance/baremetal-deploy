@@ -574,6 +574,7 @@ Sample `playbook-jetski.yml`:
 With the `playbook-jetski.yml` set and in-place, run the `playbook-jetski.yml`
 
 ```sh
+$ cd ansible-ipi-install/
 $ ansible-playbook -i inventory/jetski/hosts playbook-jetski.yml
 ```
 
