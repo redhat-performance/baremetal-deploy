@@ -14,6 +14,15 @@
     - release_version.split('.')[0]|int == 4 and release_version.split('.')[1]|int < 8
   delegate_to: localhost
 
+- name: Copy compact cluster related manifest
+  copy:
+     src: cluster-scheduler-02-config.yml
+     dest: "{{ extramanifestsopenshift_path }}/"
+     mode: 0644
+  when:
+    - compact_cluster|bool
+  delegate_to: localhost
+
 - name: Add Manifests from files dir
   copy:
     src: "{{ item }}"

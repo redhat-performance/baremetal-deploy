@@ -115,6 +115,9 @@ ovn_local_gateway=true
 # (Optional) Enable SCTP in the cluster
 sctp=false
 
+# (Optional) Deploy a compact cluster. Number or workers must be set to 0.
+compact_cluster=false
+
 ######################################
 # Vars regarding install-config.yaml #
 ######################################
