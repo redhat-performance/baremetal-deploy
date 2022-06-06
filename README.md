@@ -459,7 +459,7 @@ ingressvip="{{ extcidrnet | next_nth_usable(4) }}"
 # The master hosts provisioning nic
 # (Optional) If not set, the prov_nic will be used
 #masters_prov_nic=""
-# Network Type (OpenShiftSDN or OVNKubernetes). Playbook defaults to OVNKubernetes.
+# Network Type (OpenShiftSDN, OVNKubernetes or Calico). Playbook defaults to OVNKubernetes.
 # Uncomment below for OpenShiftSDN
 network_type="OVNKubernetes"
 # (Optional) A URL to override the default operating system image for the bootstrap node.

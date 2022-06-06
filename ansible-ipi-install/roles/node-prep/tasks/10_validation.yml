@@ -298,6 +298,16 @@
   - always
   - validation
 
+- name: Fail if compact cluster is set and the number of workers is not 0
+  fail:
+    msg: Compact cluster is set and the number of workers is not 0
+  when:
+  - compact_cluster | bool
+  - worker_count != 0
+  tags:
+  - always
+  - validation
+
 - name: Check for valid extcidrnet (IPv4)
   fail:
     msg: extcidrnet should be a valid IPv4 CIDR

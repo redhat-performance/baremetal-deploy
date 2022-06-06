@@ -372,6 +372,44 @@
         - network_type == "OVNKubernetes"
         - ovn_local_gateway is defined and ovn_local_gateway | bool
 
+    - name: Enable Calico CNI
+      copy:
+        src: "{{ item }}"
+        dest: "{{ manifest_path }}/calico/{{ item }}"
+        mode: 0644
+      with_items:
+        - "00-namespace-tigera-operator.yaml"
+        - "01-cr-apiserver.yaml"
+        - "01-cr-installation.yaml"
+        - "01-crd-apiserver.yaml"
+        - "01-crd-imageset.yaml"
+        - "01-crd-installation.yaml"
+        - "01-crd-tigerastatus.yaml"
+        - "02-configmap-calico-resources.yaml"
+        - "02-role-tigera-operator.yaml"
+        - "02-rolebinding-tigera-operator.yaml"
+        - "02-serviceaccount-tigera-operator.yaml"
+        - "02-tigera-operator.yaml"
+        - "crd.projectcalico.org_bgpconfigurations.yaml"
+        - "crd.projectcalico.org_bgppeers.yaml"
+        - "crd.projectcalico.org_blockaffinities.yaml"
+        - "crd.projectcalico.org_caliconodestatuses.yaml"
+        - "crd.projectcalico.org_clusterinformations.yaml"
+        - "crd.projectcalico.org_felixconfigurations.yaml"
+        - "crd.projectcalico.org_globalnetworkpolicies.yaml"
+        - "crd.projectcalico.org_globalnetworksets.yaml"
+        - "crd.projectcalico.org_hostendpoints.yaml"
+        - "crd.projectcalico.org_ipamblocks.yaml"
+        - "crd.projectcalico.org_ipamconfigs.yaml"
+        - "crd.projectcalico.org_ipamhandles.yaml"
+        - "crd.projectcalico.org_ippools.yaml"
+        - "crd.projectcalico.org_ipreservations.yaml"
+        - "crd.projectcalico.org_kubecontrollersconfigurations.yaml"
+        - "crd.projectcalico.org_networkpolicies.yaml"
+        - "crd.projectcalico.org_networksets.yaml"
+      when:
+        - network_type == "Calico"
+
     - name: Copy SCTP module manifest files
       template:
         src: "{{ item }}"
