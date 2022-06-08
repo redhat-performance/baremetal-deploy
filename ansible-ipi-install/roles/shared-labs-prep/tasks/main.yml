@@ -375,7 +375,7 @@
     - name: Enable Calico CNI
       copy:
         src: "{{ item }}"
-        dest: "{{ manifest_path }}/calico/{{ item }}"
+        dest: "{{ manifest_path }}/{{ item }}"
         mode: 0644
       with_items:
         - "00-namespace-tigera-operator.yaml"
