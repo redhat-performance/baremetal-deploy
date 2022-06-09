@@ -1,11 +1,7 @@
 - name: Set Director
   block:
     - name: Set nodes to director boot order (Dell)
-      shell:
-        chdir: "{{ badfish_tempdir.path }}"
-        cmd: |
-          source {{ badfish_venv }}/bin/activate
-          {{ badfish_cmd }}{{ item }} -t director
+      shell: {{ badfish_podman_cmd }}{{ item }} -t director
       register: boot_order
       until: boot_order is succeeded
       retries: 3
@@ -19,11 +15,7 @@
         seconds: 300
 
     - name: Set nodes to director boot order (Dell)
-      shell:
-        chdir: "{{ badfish_tempdir.path }}"
-        cmd: |
-          source {{ badfish_venv }}/bin/activate
-          {{ badfish_cmd }}{{ item }} -t director
+      shell: {{ badfish_podman_cmd }}{{ item }} -t director
       register: boot_order_re
       until: boot_order_re is succeeded
       retries: 5

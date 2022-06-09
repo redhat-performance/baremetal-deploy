@@ -1,11 +1,7 @@
 - name: Redfish job queue
   block:
     - name: Clear redfish job queues - {{ item }}
-      shell:
-        chdir: "{{ badfish_tempdir.path }}"
-        cmd: |
-          source {{ badfish_venv }}/bin/activate
-          {{ badfish_cmd }}{{ item }} --clear-jobs --force
+      shell: {{ badfish_podman_cmd }}{{ item }} --clear-jobs --force
       register: clear_jobs
       until: clear_jobs is succeeded
       retries: 3
