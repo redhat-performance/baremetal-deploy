@@ -167,7 +167,7 @@
         - "{{ dell_nodes }}"
 
     - name: Wait for iDrac to be responsive (check via --check-boot for Dell) 
-      shell: {{ badfish_podman_cmd }}{{ item }} --check-boot
+      shell: "{{ badfish_podman_cmd }}{{ item }} --check-boot"
       with_items:
         - "{{ dell_nodes }}"
       register: wait_for_idrac
