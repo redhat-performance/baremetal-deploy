@@ -8,3 +8,10 @@ skip_list:
   - '601'
   - '602'
   - '701'
+  #(dblack) AFAICT the ansible linter only works with a prebuilt containr w/ latest
+  #ansible core, which does not include the ipmi or openssh modules that are used
+  #in the playbooks below. So excluding them here is a hack to work around the
+  #linter error.
+exclude_paths:
+  - ansible-ipi-install/roles/prepare-kni/tasks/main.yml
+  - ansible-ipi-install/roles/scale-node-prep/tasks/main.yml
