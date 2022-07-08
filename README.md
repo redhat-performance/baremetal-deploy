@@ -297,7 +297,7 @@ ansible_ssh_pass: password
 ansible_ssh_key: "{{ ansible_user_dir }}/.ssh/id_rsa"
 # The version of the openshift-installer, undefined or empty results in the playbook failing with error message.
 # Values accepted: 'latest-4.3', 'latest-4.4', explicit version i.e. 4.3.0-0.nightly-2019-12-09-035405
-# For reference, https://openshift-release.svc.ci.openshift.org/
+# For reference, https://amd64.ocp.releases.ci.openshift.org/ and https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/
 version: "4.4.4"
 # Enter whether the build should use 'dev' (nightly builds) or 'ga' for Generally Available version of OpenShift
 # Empty value results in playbook failing with error message.

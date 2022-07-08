@@ -10,7 +10,7 @@
 
 .Procedure
 
-. Go to https://openshift-release.svc.ci.openshift.org/[Release Status] and choose a release
+. Go to https://amd64.ocp.releases.ci.openshift.org/[Release Status] and choose a release
 that has passed the tests for metal.
 
 . Verify that the release is available in the OpenShift mirror
