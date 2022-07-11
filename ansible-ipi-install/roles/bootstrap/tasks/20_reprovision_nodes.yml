@@ -36,13 +36,6 @@
             state: present
           become: true
 
-        - name: Get Badfish pod image
-          podman_image:
-            name: "{{ badfish_pod_image }}"
-            pull: yes
-            force: yes
-          when: provisioner_vendor == "dell"
-
         - name: Build the hammercli image
           shell: podman build --build-arg foreman_url={{ foreman_url }} -t hammercli .
           args:
