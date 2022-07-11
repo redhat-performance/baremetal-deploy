@@ -1,47 +1,4 @@
 ---
-- name: Create temp directory for badfish
-  tempfile:
-    state: directory
-  register: badfish_tempdir
-
-- name: Get Badfish master branch
-  git:
-    repo: https://github.com/redhat-performance/badfish.git
-    dest: "{{ badfish_tempdir.path }}"
-    force: yes
-
-- name: Set badfish venv
-  set_fact:
-    badfish_venv: "{{ badfish_tempdir.path}}/.venv"
-
-- name: Create badfish venv
-  command: python3 -m venv {{ badfish_venv }} creates={{ badfish_venv }}
-
-- name: Update pip
-  pip:
-    name: pip
-    state: latest
-    virtualenv_command: /usr/bin/python3 -m venv
-    virtualenv: "{{ badfish_venv }}"
-    
-- name: Install badfish requirements
-  pip:
-    requirements: "{{ badfish_tempdir.path}}/requirements.txt"
-    virtualenv_command: /usr/bin/python3 -m venv
-    virtualenv: "{{ badfish_venv }}"
-
-- name: detect python version
-  shell: |
-    /usr/bin/python3 --version | awk '{print $2}'
-  register: python_version
-
-- name: Include library
-  shell:
-    chdir: "{{ badfish_tempdir.path }}"
-    cmd: |
-      source {{ badfish_venv }}/bin/activate
-      ln -s {{ badfish_tempdir.path }}/src/helpers/ {{ badfish_venv }}/lib/python{{ python_version.stdout.split('.')[0] }}.{{ python_version.stdout.split('.')[1] }}/site-packages/helpers
-
 - name: Clean network interfaces created by lab automation
   shell: |
     /root/clean-interfaces.sh --nuke
@@ -71,11 +28,7 @@
         - "{{ dell_nodes }}"
 
     - name: Wait for iDrac to be responsive (check via --check-boot for Dell) 
-      shell:
-        chdir: "{{ badfish_tempdir.path }}"
-        cmd: |
-          source {{ badfish_venv }}/bin/activate
-          {{ badfish_cmd }}{{ item }} --check-boot
+      shell: "{{ badfish_podman_cmd }}{{ item }} --check-boot"
       with_items:
         - "{{ dell_nodes }}"
       register: wait_for_idrac

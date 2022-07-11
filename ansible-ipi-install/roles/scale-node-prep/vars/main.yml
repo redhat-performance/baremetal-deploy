@@ -1,2 +1,2 @@
 ---
-badfish_cmd: "./src/badfish/badfish.py -u {{ lab_ipmi_user }} -p {{ lab_ipmi_password }} -i config/idrac_interfaces.yml -H mgmt-"
+badfish_podman_cmd: "podman run --pull=always --rm quay.io/quads/badfish -u {{ lab_ipmi_user }} -p {{ lab_ipmi_password }} -i config/idrac_interfaces.yml -H mgmt-"
