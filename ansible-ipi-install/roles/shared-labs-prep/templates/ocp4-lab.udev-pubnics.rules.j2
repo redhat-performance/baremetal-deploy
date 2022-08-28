@@ -1,0 +1,3 @@
+{% for nic in disable_nics  %}
+ACTION=="add", SUBSYSTEM=="net", ENV{INTERFACE}=="{{ nic }}", RUN+="/bin/sh -c 'echo 1 > /sys$DEVPATH/device/remove'"
+{% endfor %}
