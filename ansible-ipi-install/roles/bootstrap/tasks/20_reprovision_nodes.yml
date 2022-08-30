@@ -14,7 +14,7 @@
 
 - name: set rhel version
   set_fact:
-    rhel_current_version: "{{ rhel_release.stdout.split()[-2] }}"
+    rhel_current_version: "{{ rhel_release.stdout.split('release')[1].split()[0] }}"
   ignore_errors: true
   when: rhel_release.stdout | length > 0
 
