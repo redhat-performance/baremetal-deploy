@@ -117,6 +117,27 @@
     lab_vars: "{{ (lab_name == 'scale') | ternary(scale, alias) }}"
   when: lab_name in ['scale', 'alias']
 
+# This works!
+- block:
+  - name: print r640s
+    set_fact:
+        machines_r640s: "{{ ocp_node_content | to_json | from_json | community.general.json_query(server_name_query) }}"
+    vars:
+      server_name_query: "nodes[?contains(pm_addr, '{{ node_string }}' )]"
+      node_string: "r640"
+
+  - name: print 5039ms
+    set_fact:
+        machines_5039ms: "{{ ocp_node_content | to_json | from_json | community.general.json_query(server_name_query) }}"
+    vars:
+      server_name_query: "nodes[?contains(pm_addr, '{{ node_string }}' )]"
+      node_string: "5039ms"
+
+  - name: set ordered ocp_node_content
+    set_fact:
+      ocp_node_content: "{ 'nodes': {{ machines_r640s | union( machines_5039ms ) }} }"
+  when: cloud_name == "cloud40"
+
 - name: dump deploying master nodes to a file
   copy:
     dest: "/tmp/metadata.txt"
