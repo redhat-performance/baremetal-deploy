@@ -19,6 +19,7 @@
     - { role: shared-labs-prep }
     - { role: node-prep }
     - { role: installer }
+    - { role: post-install, when: post_install | bool }
     - { role: routable_api, when: routable_api | bool }
   post_tasks:
     - name: Fix default route

@@ -46,3 +46,15 @@ worker_count: 0
 jumbo_mtu: false
 # set to true only if you requested a public routable VLAN for your cloud in scale lab
 routable_api: false
+
+
+#post-install
+post_install: "{{ lookup('env', 'POST_INSTALL')|default(false, true) }}"
+openshift_toggle_ovn_patch: "{{ lookup('env', 'OVN_PATCH')|default(false, true) }}"
+openshift_ovn_image: "{{ lookup('env', 'OVN_IMAGE')|default('', true) }}"
+kubeconfig_path: "{{ lookup('env', 'KUBECONFIG_PATH')|default('/home/kni/clusterconfigs/auth/kubeconfig', true) }}"
+dittybopper_enable: "{{ lookup('env', 'ENABLE_DITTYBOPPER')|default(false, true) }}"
+infra_node_string_1: "{{ lookup('env', 'INFRA_NODE_STRING_1')|default('worker026-r640', true) }}"
+infra_node_string_2: "{{ lookup('env', 'INFRA_NODE_STRING_1')|default('worker027-r640', true) }}"
+workload_node_string: "{{ lookup('env', 'INFRA_NODE_STRING_1')|default('worker02-r640', true) }}"
+
