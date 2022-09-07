@@ -73,23 +73,11 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
   when: openshift_toggle_workload_node|bool
 
-
-- block:
-  - name: Copy new cluster-monitoring-config
-    template:
-      src: cluster-monitoring-config.yml.j2
-      dest: "{{ ansible_user_dir }}/{{ dynamic_deploy_path }}/cluster-monitoring-config.yml"
-    register: copy_yaml
-  
-  - set_fact:
-      cluster_monitoring_yaml_path: "{{ copy_yaml.dest }}"
-
-  - name: Replace the cluster-monitoring-config ConfigMap
-    shell: |
-      oc create -f {{ cluster_monitoring_yaml_path }}
-    ignore_errors: yes
-    environment:
-      KUBECONFIG: "{{ kubeconfig_path }}"
+- name: Copy new cluster-monitoring-config
+  kubernetes.core.k8s:
+    kubeconfig: "{{ kubeconfig_path }}"
+    name: openshift-windows-machine-config-operator
+    template: cluster-monitoring-config.yml.j2
   when: openshift_toggle_infra_node|bool
 
 - name: Apply new nodeSelector to infra workload components
@@ -112,17 +100,5 @@
 
 
 - name: Deploy dittybopper
-  block:
-    - name: clone dittybopper
-      git:
-        repo: 'https://github.com/cloud-bulldozer/performance-dashboards.git'
-        dest: "{{ ansible_user_dir }}/performance-dashboards"
-        force: yes
-
-    - name: Deploy mutable Grafana
-      command: ./deploy.sh
-      args:
-        chdir: "{{ ansible_user_dir }}/performance-dashboards/dittybopper"
-      environment:
-        KUBECONFIG: "{{ kubeconfig_path }}"
+  include_tasks: 70_deploy_dittybopper.yml
   when: dittybopper_enable
