@@ -90,10 +90,6 @@
         '{"spec": {"nodePlacement": {"nodeSelector": {"matchLabels": {"node-role.kubernetes.io/infra": ""}}}}}'
       type: "--type merge"
 
-    - namespace: openshift-image-registry
-      object: deployment.apps/image-registry
-      patch: |
-         '{"spec": {"template": {"spec": {"nodeSelector": {"node-role.kubernetes.io/infra": ""}}}}}'
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   when: openshift_toggle_infra_node|bool
