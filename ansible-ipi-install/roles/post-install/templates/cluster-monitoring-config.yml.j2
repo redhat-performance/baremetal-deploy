@@ -7,7 +7,7 @@ data:
       prometheusConfigReloaderBaseImage: quay.io/coreos/prometheus-config-reloader
       configReloaderBaseImage: quay.io/coreos/configmap-reload
       nodeSelector:
-        node-role.kubernetes.io/infra: ""
+        {{ openshift_infra_node_selector  }}
     prometheusK8s:
 {% if thanos_enable %}
       externalLabels:
@@ -21,7 +21,7 @@ data:
       retention: {{openshift_prometheus_retention_period}}
       baseImage: openshift/prometheus
       nodeSelector:
-        node-role.kubernetes.io/infra: ""
+        {{ openshift_infra_node_selector  }}
 {% if persistent_monitoring_enable %}
       volumeClaimTemplate:
         spec:
@@ -33,7 +33,7 @@ data:
     alertmanagerMain:
       baseImage: openshift/prometheus-alertmanager
       nodeSelector:
-        node-role.kubernetes.io/infra: ""
+        {{ openshift_infra_node_selector  }}
 {% if persistent_monitoring_enable %}
       volumeClaimTemplate:
         spec:
@@ -49,16 +49,25 @@ data:
     kubeStateMetrics:
       baseImage: quay.io/coreos/kube-state-metrics
       nodeSelector:
-        node-role.kubernetes.io/infra: ""
+        {{ openshift_infra_node_selector  }}
     grafana:
       baseImage: grafana/grafana
       nodeSelector:
-        node-role.kubernetes.io/infra: ""
+        {{ openshift_infra_node_selector  }}
     auth:
       baseImage: openshift/oauth-proxy
+    telemeterClient:
+      nodeSelector:
+        {{ openshift_infra_node_selector  }}
     k8sPrometheusAdapter:
       nodeSelector:
-        node-role.kubernetes.io/infra: ""
+        {{ openshift_infra_node_selector  }}
+    openshiftStateMetrics:
+      nodeSelector:
+        {{ openshift_infra_node_selector  }}
+    thanosQuerier:
+      nodeSelector:
+        {{ openshift_infra_node_selector  }}
 metadata:
   name: cluster-monitoring-config
   namespace: openshift-monitoring
