@@ -1,6 +1,7 @@
 ovn_namespace: openshift-ovn-kubernetes
 openshift_network_type: OVNKubernetes
 openshift_prometheus_retention_period: 15d
+persistent_monitoring_enable: false
 openshift_prometheus_storage_class: standard
 openshift_prometheus_storage_size: 10Gi
 openshift_alertmanager_storage_class: standard
