@@ -12,6 +12,10 @@
     hostname: "{{ provisioner_hostname }}"
     user: "kni"
 
+- name: python interpreter
+  set_fact:
+    python_interpreter: "{{ (python_version.stderr_lines|length > 0) | ternary('/usr/libexec/platform-python', '/usr/bin/python') }}"
+
 - name: add provisioner to inventory file
   add_host:
     name: "{{ provisioner_hostname }}"
@@ -19,5 +23,4 @@
     ansible_host: "{{ provisioner_hostname }}"
     ansible_ssh_private_key_file: "{{ ansible_ssh_key }}"
     ansible_user: "kni"
-    ansible_python_interpreter: "/usr/bin/python3"
-
+    ansible_python_interpreter: "{{ python_interpreter }}"
