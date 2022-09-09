@@ -1,5 +1,5 @@
 ovn_namespace: openshift-ovn-kubernetes
-openshift_network_type: OVNKubernetes
+openshift_network_type: "{{ lookup('env', 'OPENSHIFT_NETOWRK_TYPE')|default('OVNKubernetes', true) }}"
 openshift_prometheus_retention_period: 15d
 persistent_monitoring_enable: false
 openshift_prometheus_storage_class: standard
@@ -9,6 +9,4 @@ openshift_alertmanager_storage_size: 2Gi
 openshift_infra_node_selector: 'node-role.kubernetes.io/infra: ""'
 thanos_enable: "{{ lookup('env', 'THANOS_ENABLE')|default(false, true) }}"
 thanos_receiver_url: "{{ lookup('env', 'THANOS_RECEIVER_URL')|default('http://thanos-receive-thanos.apps.keith-cluster.perfscale.devcluster.openshift.com/api/v1/receive', true) }}"
-openshift_toggle_infra_node: true
-openshift_toggle_workload_node: true
-dittybopper_enable: true
+dittybopper_enable: "{{ lookup('env', 'ENABLE_DITTYBOPPER')|default(true, true) }}"
