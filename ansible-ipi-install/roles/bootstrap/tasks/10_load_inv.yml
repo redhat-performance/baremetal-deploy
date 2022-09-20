@@ -135,7 +135,8 @@
   - name: set ordered ocp_node_content
     set_fact:
       ocp_node_content: "{ 'nodes': {{ control_plane_machines | union( worker_node_machines ) }} }"
-  when: control_plane_hardware_type != ""
+  when: control_plane_hardware_type is defined and control_plane_hardware_type != ""
+
 - name: dump deploying master nodes to a file
   copy:
     dest: "/tmp/metadata.txt"
