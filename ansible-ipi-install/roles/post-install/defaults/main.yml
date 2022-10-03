@@ -8,5 +8,6 @@ openshift_alertmanager_storage_class: standard
 openshift_alertmanager_storage_size: 2Gi
 openshift_infra_node_selector: 'node-role.kubernetes.io/infra: ""'
 thanos_enable: "{{ lookup('env', 'THANOS_ENABLE')|default(false, true) }}"
-thanos_receiver_url: "{{ lookup('env', 'THANOS_RECEIVER_URL')|default('http://thanos-receive-thanos.apps.keith-cluster.perfscale.devcluster.openshift.com/api/v1/receive', true) }}"
+thanos_receiver_url: "{{ lookup('env', 'THANOS_RECEIVER_URL')|default('', true) }}"
 dittybopper_enable: "{{ lookup('env', 'ENABLE_DITTYBOPPER')|default(true, true) }}"
+kubeconfig_path: "{{ lookup('env', 'KUBECONFIG_PATH')|default('/home/kni/clusterconfigs/auth/kubeconfig', true) }}"

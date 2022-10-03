@@ -52,7 +52,6 @@ routable_api: false
 post_install: "{{ lookup('env', 'POST_INSTALL')|default(false, true) }}"
 openshift_toggle_ovn_patch: "{{ lookup('env', 'OVN_PATCH')|default(false, true) }}"
 openshift_ovn_image: "{{ lookup('env', 'OVN_IMAGE')|default('', true) }}"
-kubeconfig_path: "{{ lookup('env', 'KUBECONFIG_PATH')|default('/home/kni/clusterconfigs/auth/kubeconfig', true) }}"
 infra_node_string_1: "{{ lookup('env', 'INFRA_NODE_STRING_1')|default('worker000-r640', true) }}"
 infra_node_string_2: "{{ lookup('env', 'INFRA_NODE_STRING_2')|default('worker001-r640', true) }}"
 workload_node_string: "{{ lookup('env', 'WORKLOAD_NODE_STRING')|default('worker002-r640', true) }}"
@@ -60,5 +59,6 @@ workload_node_string: "{{ lookup('env', 'WORKLOAD_NODE_STRING')|default('worker0
 # If you wish to sort the machines in the Quads inventory by machine type, set these fields to pick which machines you want first
 # (i.e. control plane) and the remaining machines will come next (workers).  The code around these variables assumes a cluster
 # only has two different hardwares and that there are at least 3 of the control_plane_hardware_type to have 3 masters.
+# eg: control_plane_hardware_type: r640 | workers_hardware_type: 5039ms
 control_plane_hardware_type: "{{ lookup('env', 'CONTROL_PLANE_HARDWARE_TYPE')|default('', true) }}"
 workers_hardware_type: "{{ lookup('env', 'WORKERS_HARDWARE_TYPE')|default('', true) }}"

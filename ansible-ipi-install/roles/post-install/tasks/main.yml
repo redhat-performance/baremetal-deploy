@@ -40,6 +40,7 @@
   
   - name: Wait for OVNK new master images to roll out
     command: oc rollout status -n {{ ovn_namespace }} ds/ovnkube-master
+  when: openshift_toggle_ovn_patch|bool
 
 - name: Relabel the infra nodes
   shell: |
