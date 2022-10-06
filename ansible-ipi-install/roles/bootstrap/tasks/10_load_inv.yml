@@ -117,6 +117,26 @@
     lab_vars: "{{ (lab_name == 'scale') | ternary(scale, alias) }}"
   when: lab_name in ['scale', 'alias']
 
+# This works!
+- block:
+  # If possible add an additional check that the number of control-plane nodes is at least 3
+  - name: print control-plane-nodes
+    set_fact:
+        control_plane_machines: "{{ ocp_node_content | to_json | from_json | community.general.json_query(server_name_query) }}"
+    vars:
+      server_name_query: "nodes[?contains(pm_addr, '{{ control_plane_hardware_type }}' )]"
+
+  - name: print worker nodes
+    set_fact:
+        worker_node_machines: "{{ ocp_node_content | to_json | from_json | community.general.json_query(server_name_query) }}"
+    vars:
+      server_name_query: "nodes[?contains(pm_addr, '{{ workers_hardware_type }}' )]"
+
+  - name: set ordered ocp_node_content
+    set_fact:
+      ocp_node_content: "{ 'nodes': {{ control_plane_machines | union( worker_node_machines ) }} }"
+  when: control_plane_hardware_type is defined and control_plane_hardware_type != ""
+
 - name: dump deploying master nodes to a file
   copy:
     dest: "/tmp/metadata.txt"

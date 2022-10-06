@@ -1,0 +1,13 @@
+---
+- name: clone dittybopper
+  git:
+    repo: 'https://github.com/cloud-bulldozer/performance-dashboards.git'
+    dest: "{{ ansible_user_dir }}/performance-dashboards"
+    force: yes
+
+- name: Deploy mutable Grafana
+  command: ./deploy.sh
+  args:
+    chdir: "{{ ansible_user_dir }}/performance-dashboards/dittybopper"
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
