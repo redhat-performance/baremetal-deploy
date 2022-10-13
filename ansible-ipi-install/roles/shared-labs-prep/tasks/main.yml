@@ -132,39 +132,34 @@
     - "{{ pub_nic }}"
   become: yes
 
-- name: Power on master nodes
-  ipmi_power:
-    name: "mgmt-{{ item }}"
-    user: "{{ lab_ipmi_user }}"
-    password: "{{ lab_ipmi_password }}"
-    state: on
-  with_items: "{{ master_fqdns }}"
-  register: power_on_masters
-  until: power_on_masters is succeeded
-  retries: 3
-  delay: 30
-  tags:
-    - bootorder
+- block:
 
-- name: Power on worker nodes
-  ipmi_power:
-    name: "mgmt-{{ item }}"
-    user: "{{ lab_ipmi_user }}"
-    password: "{{ lab_ipmi_password }}"
-    state: on
-  with_items: "{{ worker_fqdns }}"
-  register: power_on_workers
-  until: power_on_workers is succeeded
-  retries: 3
-  delay: 30
+  - name: Power on nodes - async
+    community.general.ipmi_power:
+      name: mgmt-{{ item }}
+      user: "{{ lab_ipmi_user }}"
+      password: "{{ lab_ipmi_password }}"
+      state: on
+    async: 30
+    poll: 0
+    register: async_loop
+    loop: "{{ master_fqdns + worker_fqdns }}"
+
+  - name: Wait for async action to finish
+    async_status:
+      jid: "{{ item.ansible_job_id }}"
+    delay: 1
+    retries: 10
+    loop: "{{async_loop.results}}"
+    register: async_loop_jobs
+    until: async_loop_jobs.finished
+
   tags:
     - bootorder
 
 - name: Dell Boot Order tasks (Dell)
   block:
     - include_tasks: 10_redfish_queue.yml
-      with_items:
-        - "{{ dell_nodes }}"
 
     - name: Wait for iDrac to be responsive (check via --check-boot for Dell) 
       shell: "{{ badfish_podman_cmd }}{{ item }} --check-boot"
@@ -177,8 +172,6 @@
       ignore_errors: true
 
     - include_tasks: 20_set_director_mode.yml
-      with_items:
-        - "{{ dell_nodes }}"
 
   when: dell_nodes | length > 0
   tags:
@@ -206,10 +199,6 @@
         ipmitool -I lanplus -H mgmt-{{ item }} -U {{ lab_ipmi_user }} -P {{ lab_ipmi_password }} power cycle
       with_items:
         - "{{ supermicro_nodes }}"
-
-    - name: Wait for few seconds till it boots
-      wait_for:
-        timeout: 300
 
   when: supermicro_nodes | length > 0
   tags:
@@ -357,7 +346,7 @@
   when: worker_count != 0
 
 - name: Power off remaining workers
-  ipmi_power:
+  community.general.ipmi_power:
     name: "{{ item.pm_addr }}"
     user: "{{ lab_ipmi_user }}"
     password: "{{ lab_ipmi_password }}"

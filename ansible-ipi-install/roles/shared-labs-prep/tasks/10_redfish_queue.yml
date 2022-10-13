@@ -1,12 +1,17 @@
-- name: Redfish job queue
-  block:
-    - name: Clear redfish job queues - {{ item }}
-      shell: "{{ badfish_podman_cmd }}{{ item }} --clear-jobs --force"
-      register: clear_jobs
-      until: clear_jobs is succeeded
-      retries: 3
-      delay: 30
-  rescue:
-    - name: Rescue - Reset iDRAC - {{ item }}
-      shell: |
-        sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item }} "racadm racreset soft -f"
+- name: Clear redfish job queues from Dell nodes - async
+  shell: |
+    "{{ badfish_podman_cmd }}{{ item }} --clear-jobs --force" ||
+    sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item }} "racadm racreset soft -f"
+  async: 60
+  poll: 0
+  register: async_loop
+  loop: "{{ dell_nodes }}"
+
+- name: Wait for async task to finish
+  async_status:
+    jid: "{{ item.ansible_job_id }}"
+  delay: 1
+  retries: 10
+  loop: "{{async_loop.results}}"
+  register: async_loop_jobs
+  until: async_loop_jobs.finished

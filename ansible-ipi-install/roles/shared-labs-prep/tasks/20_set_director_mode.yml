@@ -1,22 +1,18 @@
-- name: Set Director
-  block:
-    - name: Set nodes to director boot order (Dell)
-      shell: "{{ badfish_podman_cmd }}{{ item }} -t director"
-      register: boot_order
-      until: boot_order is succeeded
-      retries: 3
-      delay: 60
-  rescue:
-    - name: Rescue - Reset iDRAC - {{ item }}
-      shell: |
-        sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item }} "racadm racreset soft -f"
+- name: Set nodes to director boot order (Dell) - async
+  shell: |
+    {{ badfish_podman_cmd }}{{ item }} -t director ||
+    sshpass -p "{{ lab_ipmi_password }}" ssh -o StrictHostKeyChecking=no {{ lab_ipmi_user }}@mgmt-{{ item }} "racadm racreset soft -f" &&
+    {{ badfish_podman_cmd }}{{ item }} -t director
+  async: 300
+  poll: 0
+  register: async_loop
+  loop: "{{ dell_nodes }}"
 
-    - pause:
-        seconds: 300
-
-    - name: Set nodes to director boot order (Dell)
-      shell: "{{ badfish_podman_cmd }}{{ item }} -t director"
-      register: boot_order_re
-      until: boot_order_re is succeeded
-      retries: 5
-      delay: 60
+- name: Wait for async task to finish
+  async_status:
+    jid: "{{ item.ansible_job_id }}"
+  delay: 1
+  retries: 30
+  loop: "{{async_loop.results}}"
+  register: async_loop_jobs
+  until: async_loop_jobs.finished

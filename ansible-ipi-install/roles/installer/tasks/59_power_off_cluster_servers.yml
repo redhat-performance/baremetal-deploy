@@ -12,17 +12,25 @@
         - "{{ groups.masters }}"
         - "{{ groups.workers | default([]) }}"
 
-    - name: Power off hosts
-      ipmi_power:
+    - name: Power off hosts - async
+      community.general.ipmi_power:
         name: "{{ hostvars[item]['ipmi_address'] }}"
         user: "{{ hostvars[item]['ipmi_user'] }}"
         password: "{{ hostvars[item]['ipmi_password'] }}"
         port: "{{ hostvars[item]['ipmi_port'] | default(623) }}"
         state: off
+      async: 180
+      poll: 0
       register: power_off_hosts
-      until: power_off_hosts is not failed
+      loop: "{{ groups['poweroff_hosts'] }}"
+      when: groups['poweroff_hosts'] is defined
+
+    - name: Check for async task to finish
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      loop: "{{ power_off_hosts.results }}"
+      register: async_poll_results
+      until: async_poll_results.finished
       retries: 10
       delay: 5
-      with_items: "{{ groups['poweroff_hosts'] }}"
-      when: groups['poweroff_hosts'] is defined
   tags: powerservers
