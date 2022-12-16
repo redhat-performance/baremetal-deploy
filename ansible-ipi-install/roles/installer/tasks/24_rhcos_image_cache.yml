@@ -7,7 +7,6 @@
   uri:
     url: https://www.redhat.com
     status_code: [-1,200]
-    timeout: 1
   register: the_url
   tags: cache
 

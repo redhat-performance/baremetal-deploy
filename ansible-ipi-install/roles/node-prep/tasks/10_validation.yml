@@ -154,7 +154,6 @@
   uri:
     url: https://www.redhat.com
     status_code: [-1,200]
-    timeout: 1
   register: check_url
   tags:
   - validation

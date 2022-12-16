@@ -16,9 +16,9 @@
   roles:
     - { role: set-deployment-facts }
     - { role: network-discovery }
-    - { role: shared-labs-prep }
-    - { role: node-prep }
-    - { role: installer }
+    - { role: shared-labs-prep , tags: [ install ] }
+    - { role: node-prep , tags: [ install ] }
+    - { role: installer , tags: [ install ] }
     - { role: post-install, when: post_install | bool }
     - { role: routable_api, when: routable_api | bool }
   post_tasks:

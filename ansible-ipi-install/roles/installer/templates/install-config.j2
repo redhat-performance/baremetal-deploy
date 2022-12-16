@@ -11,6 +11,9 @@ metadata:
 networking:
 {% if not dualstack_baremetal|bool  %}
   machineCIDR: {{ extcidrnet }}
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 20
 {% endif %}
   networkType: {{ network_type }}
 {% if ipv6_enabled|bool and not (ipv4_baremetal|bool or dualstack_baremetal|bool) %}
@@ -26,7 +29,7 @@ networking:
   - cidr: {{ extcidrnet6 }}
   clusterNetwork:
   - cidr: 10.128.0.0/14
-    hostPrefix: 23
+    hostPrefix: 20
   - cidr: fd02::/48
     hostPrefix: 64
   serviceNetwork:

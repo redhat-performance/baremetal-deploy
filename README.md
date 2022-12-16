@@ -577,7 +577,6 @@ With the `playbook-jetski.yml` set and in-place, run the `playbook-jetski.yml`
 $ cd ansible-ipi-install/
 $ ansible-playbook -i inventory/jetski/hosts playbook-jetski.yml
 ```
-
 ## Verifying Installation
 
 Once the playbook has successfully completed, verify that your environment is up and running. 
@@ -604,6 +603,16 @@ master-1.openshift.example.com               Ready    master          19h   v1.1
 master-2.openshift.example.com               Ready    master          19h   v1.16.2
 worker-0.openshift.example.com               Ready    worker          19h   v1.16.2
 ```
+
+## Running only post-install tasks
+
+There are tags that can help you to re-run certain parts of the playbook without starting over from scratch.
+For example, if the install was successful, but post-install fails, you can re-run with:
+
+```sh
+$ ansible-playbook -i inventory/jetski/hosts --skip-tags 'install,node_settle_wait' playbook-jetski.yml
+```
+
 ### The Ansible `playbook-jetski-scaleup.yml`
 
 This playbook scales up worker nodes to the desired `worker_count` mentioned in `ansible-ipi-install/group_vars/all.yml` make sure to update the worker_count before execution. This playbook reads the current cluster size and available nodes from `ocpdeployednodeinv.json` and `ocpnondeployednodeinv.json`(originally created by `playbook-jetski.yml`) stored in provisioner node `/home/kni/scale-worker/` directory. 
@@ -673,7 +682,7 @@ Sample `playbook-jetski-scaleup.yml`:
 ```
 
 
-### Running the `playbook-jetski.yml`
+### Running the `playbook-jetski-scaleup.yml`
 
 With the `playbook-jetski-scaleup.yml` set and in-place, run the `playbook-jetski-scaleup.yml`
 
@@ -853,3 +862,11 @@ Something that has worked out well in the past is to keep the consoles of all th
 * One final reboot and the node should come up as master-0 or master-1 or master-2 at the prompt
 
 Deployments usually fail if the above three steps do not happen. Sometimes, a node might not boot to disk and be stuck in a PXE loop even when asked to boot to hard disk by the installer or it might be stuck at the OS selection menu when asked to boot to disk. These among several other issues have been seen with hardware in the past and it is worth keeping an eye on the console and intervening if needed for a successful deploy. This is beyond the scope of the playbook or for that matter even the installer.
+
+### Provisioner Issues with ScaleLab Dell R650s
+Some ScaleLab machines are provisioned with RHEL 8.2 channels that cannot install required sshpass, Python 3.9, or Python 3.9 dependencies.
+To solve this, what has been done with the R650s:
+
+1. Register the bastion via subscription manager (i.e. `subscription-manager register`)
+2. Attach to a subscription manager pool for a matching SKU : `subscription-manager list --available` (hint: Look for the pool id corresponding to the Employee SKU)
+3. Install sshpass, python39 and ansible.

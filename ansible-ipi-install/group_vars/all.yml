@@ -62,3 +62,9 @@ workload_node_string: "{{ lookup('env', 'WORKLOAD_NODE_STRING')|default('worker0
 # eg: control_plane_hardware_type: r640 | workers_hardware_type: 5039ms
 control_plane_hardware_type: "{{ lookup('env', 'CONTROL_PLANE_HARDWARE_TYPE')|default('', true) }}"
 workers_hardware_type: "{{ lookup('env', 'WORKERS_HARDWARE_TYPE')|default('', true) }}"
+
+# KubeletConfig tweaks to apply to worker nodes.
+# Specifically required to exceed default of 250 max pods per node.
+# Other future options could be to increase (or autosize) node system-reserved.
+custom_kubeletconfig:
+  maxPods: 2300

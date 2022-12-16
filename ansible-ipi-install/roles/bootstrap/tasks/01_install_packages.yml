@@ -1,6 +1,6 @@
 - name: install packages
   package:
-    name: [ python3-dns, python3-netaddr, ipmitool]
+    name: [ python3-dns, python3-netaddr, ipmitool, python39-jmespath, python39-netaddr, python39-dns]
   become: true
 
 - name: install ansible galaxy plugin

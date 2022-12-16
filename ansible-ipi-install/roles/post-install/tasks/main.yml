@@ -1,5 +1,6 @@
 - name: Wait 7m for all the nodes to settle
   command: sleep 900
+  tags: "node_settle_wait"
 
 - block:
   - name: Label infra nodes
@@ -9,11 +10,12 @@
   - name: Label infra nodes
     shell: |
        oc label node '{{ infra_node_string_2 }}' 'node-role.kubernetes.io/infra=' --overwrite
+  when: infra_node_string_1 != "" or infra_node_string_2 != ""
 
-  - name: Label workload nodes
-    shell: |
-       oc label node '{{ workload_node_string }}' 'node-role.kubernetes.io/workload=' --overwrite
-  when: infra_node_string_1 != "" or infra_node_string_2 != "" or workload_node_string != ""
+- name: Label workload nodes
+  shell: |
+     oc label node '{{ workload_node_string }}' 'node-role.kubernetes.io/workload=' --overwrite
+  when: workload_node_string != ""
 
 - name: OVN block
   block:
@@ -101,7 +103,10 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
   when: infra_node_string_1 != "" or infra_node_string_2 != ""
 
-
 - name: Deploy dittybopper
   include_tasks: 70_deploy_dittybopper.yml
   when: dittybopper_enable
+
+- name: Apply KubeletConfig
+  include_tasks: 80_deploy_kubeletconfig.yml
+  when: custom_kubeletconfig is defined

@@ -1,0 +1,20 @@
+---
+- name: Label worker MCP for custom kubelet
+  shell: |
+    oc label mcp worker custom-kubelet=set-max-pods
+  ignore_errors: yes
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+
+- name: Template kubeletconfig
+  template:
+    src: set-max-pods-kubeletconfig.yml.j2
+    dest: "{{ ansible_user_dir }}/set-max-pods-kubeletconfig.yml"
+  register: kubeletconfig
+
+- name: Create the KubeletConfig
+  shell: |
+    oc create -f {{ kubeletconfig.dest }}
+  ignore_errors: yes
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
