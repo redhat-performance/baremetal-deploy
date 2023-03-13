@@ -67,4 +67,4 @@ workers_hardware_type: "{{ lookup('env', 'WORKERS_HARDWARE_TYPE')|default('', tr
 # Specifically required to exceed default of 250 max pods per node.
 # Other future options could be to increase (or autosize) node system-reserved.
 custom_kubeletconfig:
-  maxPods: 2300
+  maxPods: 250
