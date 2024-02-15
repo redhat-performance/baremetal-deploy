@@ -13,7 +13,19 @@ spec:
   bootMACAddress: "{{ item.prov_mac }}"
 {% if bootmode is defined and bootmode == 'legacy' %}
   bootMode: legacy
-{% endif %}  
+{% endif %}
+{% if multithread is defined or sriov is defined or virtualization is defined %}
+  firmware:
+{% if multithread is defined %}
+    simultaneousMultithreadingEnabled: {{ multithread=true }}
+{% endif %}
+{% if sriov is defined %}
+    sriovEnabled: {{ sriov }}
+{% endif %}
+{% if virtualization is defined %}
+    virtualizationEnabled: {{ virtualization }}
+{% endif %}
+{% endif %}
   userData:
     name: worker-user-data
     namespace: openshift-machine-api
