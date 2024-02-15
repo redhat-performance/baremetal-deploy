@@ -17,7 +17,7 @@ spec:
 {% if multithread is defined or sriov is defined or virtualization is defined %}
   firmware:
 {% if multithread is defined %}
-    simultaneousMultithreadingEnabled: {{ multithread=true }}
+    simultaneousMultithreadingEnabled: {{ multithread }}
 {% endif %}
 {% if sriov is defined %}
     sriovEnabled: {{ sriov }}
