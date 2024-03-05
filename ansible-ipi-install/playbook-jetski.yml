@@ -17,8 +17,8 @@
     - { role: set-deployment-facts }
     - { role: network-discovery }
     - { role: shared-labs-prep }
-    - { role: node-prep }
-    - { role: installer }
+    - { role: redhatci.ocp.node-prep }
+    - { role: redhatci.ocp.installer }
     - { role: post-install, when: post_install | bool }
     - { role: routable_api, when: routable_api | bool }
   post_tasks:

@@ -1,1 +1,0 @@
-../../node-prep/library/nmcli.py
