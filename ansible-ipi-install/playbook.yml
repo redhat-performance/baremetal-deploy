@@ -1,8 +1,10 @@
 ---
 - name: IPI on Baremetal Installation Playbook
   hosts: provisioner
+  collections:
+    - redhatci.ocp
   roles:
-  - node-prep
+  - node_prep
   - installer
 
   environment:

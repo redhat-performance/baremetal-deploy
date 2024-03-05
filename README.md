@@ -20,11 +20,24 @@ _**Table of Contents**_
 
 ## Introduction
 
+For contributions to the ansible-ipi-install roles please visit the [ansible-collection-redhatci-ocp](https://github.com/redhatci/ansible-collection-redhatci-ocp) repository.
+
+## Installation artifacts
+
 This Ansible playbook and set of Ansible roles are aimed at providing a cluster of Red Hat OpenShift 4 (`IPI`) in the Red Hat shared labs with as little user input and intervention as possible.
 
+- [Performance](features/performance/). Performance-related features like Hugepages, real-time kernel, CPU Manager and Topology Manager.
+- [Bonding](features/bonding/). A helper script to create bonding devices with ignition and/or NMstate.
+- [DPDK](features/dpdk/). Example workload that uses DPDK libraries for packet processing.
+- [Kubernetes NMstate](features/kubernetes-nmstate/). Node-networking configuration driven by Kubernetes and executed by NMstate.
+- [Kubernetes NMstate day1](features/kubernetes-nmstate/day1/). Node-networking configuration driven by Kubernetes and executed by NMstate during the deployment of a cluster, by adding settings to install-config.yaml
+- [PTP](features/ptp). This operator manages cluster-wide Precision Time Protocol (PTP) configuration.
+- [SCTP](features/sctp). These assets enable Stream Control Transmission Protocol (SCTP) in the RHCOS
+  worker nodes.
+- [SR-IOV](features/sriov). The SR-IOV Network Operator creates and manages the components of the SR-IOV stack.
+- [CNV](features/cnv). Container Native Virtualization is an add-on to OpenShift Container Platform that allows you to run and manage virtual machine workloads alongside container workloads.
 
 ## Prerequisites
-
 The playbook is intended to be run from outside the cluster of machines you wish to deploy on, from a host we will refer to as `jumphost` for the purposes of this discussion. It could even be a user's laptop or some Virtual Machine. The host from which the the playbook is run from (`jumphost`) must satisfy the following requirements
 
 * Ansible >= 2.9

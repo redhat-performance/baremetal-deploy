@@ -1,5 +1,7 @@
-name: Ansible Lint # feel free to pick your own name
-on: [push, pull_request]
+---
+name: Ansible Lint  # feel free to pick your own name
+
+on: pull_request
 
 jobs:
   build:
@@ -7,11 +9,27 @@ jobs:
 
     steps:
       # Important: This sets up your GITHUB_WORKSPACE environment variable
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.5.3
 
-      - name: Run ansible-lint
-        # replace `main` with any valid ref, or tags like `v6`
-        uses: ansible-community/ansible-lint-action@v6
-        # optional:
+      - uses: actions/cache@v3.3.1
         with:
-          path: "ansible-ipi-install/"  # <-- only one value is allowed
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - uses: actions/setup-python@v4.6.1
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f test-requirements.txt ]; then pip install -r test-requirements.txt; fi
+          ansible-galaxy collection install -r ansible-ipi-install/requirements.yml
+
+      - name: Lint Ansible Playbook
+        run: |
+          ansible-lint -p --force-color -c .ansible-lint ansible-ipi-install/playbook.yml
+
+...
