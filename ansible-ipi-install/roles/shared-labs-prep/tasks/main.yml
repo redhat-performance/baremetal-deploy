@@ -113,7 +113,7 @@
   become: yes
 
 - name: Set MTU
-  nmcli:
+  redhatci.ocp.nmcli:  #setting MTU using upstream nmcli library is failing so using local module
     conn_name: "{{ pub_nic }}"
     type: ethernet
     mtu: "{{ 9000 if jumbo_mtu else 1500 }}"
@@ -274,9 +274,20 @@
 
 - name: Create Manifest folder
   block:
+    - name: "Check ansible collection path - redhatci.ocp"
+      community.general.ansible_galaxy_install:
+        type: collection
+        name: redhatci.ocp
+      register: out
+
+    - set_fact:
+        collection_dir: "{{ item.key }}"
+      with_dict: "{{ out.installed_collections }}"
+      when: "item.value != {}"
+
     - name: Set manifest directory path
       set_fact:
-        manifest_path: "{{ playbook_dir }}/roles/installer/files/openshift/"
+        manifest_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/openshift/"
       
     - name: Clean up any existing manifest content
       file:
