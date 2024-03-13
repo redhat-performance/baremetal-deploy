@@ -74,7 +74,7 @@
     - block:       
         - name: Set provisioning interface
           set_fact:
-            masters_prov_nic: "{{ lab_vars['machine_types'][item.0][item.1]['prov_nic_f04'] if 'r640' in master_fqdns[0].split('.')[0].split('-') and 'f04' in master_fqdns[0].split('.')[0].split('-') else lab_vars['machine_types'][item.0][item.1]['prov_nic'] }}"
+            masters_prov_nic: "{{ lab_vars['machine_types'][item.0][item.1]['prov_nic_f18'] if 'r640' in master_fqdns[0].split('.')[0].split('-') and 'f18' in master_fqdns[0].split('.')[0].split('-') else lab_vars['machine_types'][item.0][item.1]['prov_nic'] }}"
           with_together: 
             - "{{ master_vendors }}"
             - "{{ master_types }}"
