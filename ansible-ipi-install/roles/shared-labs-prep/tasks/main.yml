@@ -288,6 +288,8 @@
     - name: Set manifest directory path
       set_fact:
         manifest_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/openshift/"
+        customize_extramanifestsopenshift_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/openshift/"
+        customize_extramanifests_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/manifests/"
       
     - name: Clean up any existing manifest content
       file:
