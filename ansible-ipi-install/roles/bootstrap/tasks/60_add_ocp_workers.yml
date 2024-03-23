@@ -13,7 +13,7 @@
     baremetal_nic: "{{ node_item.bm_nic }}"
     hardware_profile: "unknown"
     poweroff: true
-  loop: "{{ deploying_worker_nodes_content }}"
+  loop: "{{ deploying_worker_nodes_content['nodes'] }}"
   loop_control:
     index_var: node_index
     loop_var: node_item 
