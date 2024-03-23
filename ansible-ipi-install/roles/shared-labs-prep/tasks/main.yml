@@ -290,6 +290,8 @@
         manifest_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/openshift/"
         customize_extramanifestsopenshift_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/openshift/"
         customize_extramanifests_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/manifests/"
+        master_network_config_template: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/master_nmstate_file.yaml"
+        worker_network_config_template: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/worker_nmstate_file.yaml"
       
     - name: Clean up any existing manifest content
       file:
@@ -340,6 +342,18 @@
         - "ocp4-lab.machineconfig.yml.j2"
       when:
         - sctp | bool
+
+    - name: Copy master nmstate file
+      template:
+        src: "ocp4-lab.nmstate.conf.j2"
+        dest: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/{{ node_item }}_nmstate_file.yaml"
+        mode: 0644
+        force: true
+      with_items:
+        - "master"
+        - "worker"
+      loop_control:
+          loop_var: node_item
 
   delegate_to: localhost
 

@@ -1,14 +1,18 @@
 {
   "nodes": [
 {% for key in ocp_node_content| json_query(query) -%}
+{% set machine_type = key.pm_addr.split('.')[0].split('-')[4] if lab_name == 'scale' else key.pm_addr.split('.')[0].split('-')[3] -%}
+{% if lab_name == 'scale' -%}
+{% set vendor = 'supermicro' if machine_type in scale['machine_types']['supermicro'] else 'dell' -%}
+{% else -%}
+{% set vendor = 'supermicro' if machine_type in alias['machine_types']['supermicro'] else 'dell' -%}
+{% endif %}
       {
          "ext_ip": "{{ extcidrnet | next_nth_usable(loop.index0 + 10 + ip_nth|default(0)|int) }}",
          "host_name": {% if node == 'worker' %}"worker{{ '%03d' % (loop.index0 + wrkr_index|default(0)|int) }}-{{ key.pm_addr.split('.')[0].split('-')[4] if lab_name == 'scale' else key.pm_addr.split('.')[0].split('-')[3] }}"{% else %}"master-{{ loop.index0 }}"{% endif %},
-{% if routable_api %}
-         "bm_mac": "{{ key.mac[-1] }}",
-{% else %}
-         "bm_mac": "{{ key.mac[2] }}",
-{% endif %}
+         "bm_mac": {% if routable_api %}"{{ key.mac[-1] }}"{% else %}"{{ key.mac[2] }}"{% endif %},
+         "bm_nic": {% if routable_api %}"{{ scale['machine_types'][vendor][machine_type]['bm_nic_2'] if lab_name == 'scale' else alias['machine_types'][vendor][machine_type]['bm_nic_2'] }}"{% else %}"{{ scale['machine_types'][vendor][machine_type]['bm_nic'] if lab_name == 'scale' else alias['machine_types'][vendor][machine_type]['bm_nic'] }}"{% endif %},
+         "prov_nic": "{{ scale['machine_types'][vendor][machine_type]['prov_nic'] if lab_name == 'scale' else alias['machine_types'][vendor][machine_type]['prov_nic'] }}",
          "prov_mac": "{{ key.mac[1] }}",
          "pm_addr": "{{ key.pm_addr }}",
          "pm_password": "{{ key.pm_password }}",

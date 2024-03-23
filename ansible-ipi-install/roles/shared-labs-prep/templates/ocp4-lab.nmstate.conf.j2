@@ -1,0 +1,37 @@
+interfaces:
+{% for nic in disable_nics  %}
+- name: {{ nic }}
+  state: down
+  ipv4:
+    enabled: false
+  ipv6:
+    enabled: false
+{% endfor %}
+{% raw -%}
+- name: {{ provision_nic }}
+  state: up
+  type: ethernet
+  ipv4:
+    enabled: true
+    dhcp: true
+    auto-dns: true
+    auto-gateway: true
+    auto-routes: true
+  ipv6:
+    enabled: true
+    autoconf: false
+    dhcp: false
+- name: {{ baremetal_nic }}
+  state: up
+  type: ethernet
+  ipv4:
+    enabled: true
+    dhcp: true
+    auto-dns: true
+    auto-gateway: true
+    auto-routes: true
+  ipv6:
+    enabled: true
+    autoconf: false
+    dhcp: false
+{% endraw %}
