@@ -95,5 +95,5 @@ scale:
       r650:
         pub_nic: eno12399np0
         prov_nic: ens1f1
-        bm_nic: ens2f0
+        bm_nic: ens2f0np0
         bm_nic_2: eno12409np1
