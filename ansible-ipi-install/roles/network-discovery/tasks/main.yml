@@ -32,19 +32,9 @@
   set_fact:
     ansible_eligible_interfaces: "{{ ansible_eligible_interfaces | reject('search', '[.]') | list }}"
 
-- name: Get the bm interface
-  set_fact:
-    pub_nic: "{{ item }}"
-  when: ansible_{{ item }}.macaddress is defined and ansible_{{ item}}.type == "ether" and ansible_{{ item }}.macaddress == bm_mac
-  with_items:
-    - "{{ ansible_eligible_interfaces }}"
-
-- name: Get the provisioning interface
-  set_fact:
-    prov_nic: "{{ item }}"
-  when: ansible_{{ item }}.macaddress is defined and ansible_{{ item }}.type == "ether" and ansible_{{ item }}.macaddress == prov_mac
-  with_items:
-    - "{{ ansible_eligible_interfaces }}"
+- include_tasks: 10_get_nic.yml
+   with_items:
+     - "{{ ansible_eligible_interfaces }}"
 
 - name: Set lab_pub_nics for master
   set_fact:
