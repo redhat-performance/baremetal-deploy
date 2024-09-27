@@ -22,7 +22,7 @@
 - name: Download ocpinv.json
   block:
     - uri:
-        url: "{{ alias.lab_url }}/cloud/{{ cloud_name }}_ocpinventory.json"
+        url: "{{ alias.lab_url }}/instack/{{ cloud_name }}_ocpinventory.json"
         return_content: yes
       register: response
     
@@ -33,7 +33,7 @@
 - name: Download ocpinv.json
   block:
     - uri:
-        url: "{{ scale.lab_url }}/cloud/{{ cloud_name }}_ocpinventory.json"
+        url: "{{ scale.lab_url }}/instack/{{ cloud_name }}_ocpinventory.json"
         return_content: yes
       register: response
     
