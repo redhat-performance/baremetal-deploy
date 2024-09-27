@@ -1,3 +1,6 @@
+# MESSAGE
+This repository is used by limited team who does IPI based installations, for other generic deployment [jetlag](https://github.com/redhat-performance/jetlag) is recommended. 
+
 ## JetSki
 JetSki inherits roles from [upstream](https://github.com/openshift-kni/baremetal-deploy) and aims to provide a consistent, seamless OpenShift installation experience on bare metal in Red Hat's Shared Labs.
 
@@ -20,17 +23,31 @@ _**Table of Contents**_
 
 ## Introduction
 
+For contributions to the ansible-ipi-install roles please visit the [ansible-collection-redhatci-ocp](https://github.com/redhatci/ansible-collection-redhatci-ocp) repository.
+
+## Installation artifacts
+
 This Ansible playbook and set of Ansible roles are aimed at providing a cluster of Red Hat OpenShift 4 (`IPI`) in the Red Hat shared labs with as little user input and intervention as possible.
 
+- [Performance](features/performance/). Performance-related features like Hugepages, real-time kernel, CPU Manager and Topology Manager.
+- [Bonding](features/bonding/). A helper script to create bonding devices with ignition and/or NMstate.
+- [DPDK](features/dpdk/). Example workload that uses DPDK libraries for packet processing.
+- [Kubernetes NMstate](features/kubernetes-nmstate/). Node-networking configuration driven by Kubernetes and executed by NMstate.
+- [Kubernetes NMstate day1](features/kubernetes-nmstate/day1/). Node-networking configuration driven by Kubernetes and executed by NMstate during the deployment of a cluster, by adding settings to install-config.yaml
+- [PTP](features/ptp). This operator manages cluster-wide Precision Time Protocol (PTP) configuration.
+- [SCTP](features/sctp). These assets enable Stream Control Transmission Protocol (SCTP) in the RHCOS
+  worker nodes.
+- [SR-IOV](features/sriov). The SR-IOV Network Operator creates and manages the components of the SR-IOV stack.
+- [CNV](features/cnv). Container Native Virtualization is an add-on to OpenShift Container Platform that allows you to run and manage virtual machine workloads alongside container workloads.
 
 ## Prerequisites
-
 The playbook is intended to be run from outside the cluster of machines you wish to deploy on, from a host we will refer to as `jumphost` for the purposes of this discussion. It could even be a user's laptop or some Virtual Machine. The host from which the the playbook is run from (`jumphost`) must satisfy the following requirements
 
 * Ansible >= 2.9
 * Python 3.6+ 
 * Fedora/CentOS/RHEL (preferably Fedora 30+)
 * Passwordless sudo for user running the playbook on the ansible control node (host where the playbooks are being run from), since certain package installs are done
+* Install ansible collection `ansible-galaxy collection install -r requirements.yml` on your local machine
 
 Passwordless sudo can be setup as below:
 ```
@@ -71,7 +88,8 @@ The `ansible-ipi-install`  directory consists of three main sub-directories in a
 
 - `group_vars` - Contains the `all.yml` which holds the bare minimum variables needed for install
 - `inventory` - contains the file `jetski/hosts` that has advanced variables for customized installation
-- `roles` - contains 11 roles: `bootstrap`, `prepare-kni`, `add-provisioner`, `network-discovery`, `set-deployment-facts`, `shared-labs-prep`,`node-prep` `installer`, `scale-bootstrap`, `scale-node-prep` and `scale-worker`. `node-prep` handles all the prerequisites that the provisioner node requires prior to running the installer. The `installer` role handles extracting the installer, setting up the manifests, and running the Red Hat OpenShift installation.
+- `roles` - contains 9 roles: `bootstrap`, `prepare-kni`, `add-provisioner`, `network-discovery`, `set-deployment-facts`, `shared-labs-prep`,`node_prep` `installer`, `scale-bootstrap`, `scale-node-prep` and `scale-worker`. 
+- downloads 2 roles from the collectoins `redhatci.ocp` - `node_prep` and `installer`, `node_prep` handles all the prerequisites that the provisioner node requires prior to running the installer. The `installer` role handles extracting the installer, setting up the manifests, and running the Red Hat OpenShift installation.
 
 The purpose served by each role can be summarized as follows:
 * `bootstrap` - This role does a **lot** of heavy lifting for seamless deployment in the shared labs. On a high level, this role is responsible for installing needed packages on the `jumphost`, obtaining the list of nodes in your lab allocation dynamically, setting some variables required in inventory as ansible facts (like list of master nodes, worker nodes, mgmt interfaces), copying keys of the `jumphost` to the provisioner, rebuilding the provisioner if needed and finally adding the master and worker nodes to the in-memory dynamic inventory of ansible. This role runs on the `jumphost` aka `localhost`.
@@ -80,7 +98,7 @@ The purpose served by each role can be summarized as follows:
 * `network-discovery` - Set several important variables for the inventory including the NICs and MACs to be used for the provisioning and baremetal networks. Some of the MAC details are obtained from an inventory automatically generated on the Lab Wiki which the network-discovery role uses to further set all variables needed for proper networking. This role runs on the provisioner host.
 * `set-deployment-facts` - This role is used to set some of the facts registered on the jumphost on to the provisioner host for use in future roles. This role runs on the provisioner host.
 * `shared-labs-prep` - Creates the BM bridge, powers on nodes, sets boot order etc. This role runs on the provisioner host.
-* `node-prep` - Prepares the provisioner node for the OpenShift Installer by installing needed packages, creating necessary directories etc. This role runs on the provisioner host.
+* `node_prep` - Prepares the provisioner node for the OpenShift Installer by installing needed packages, creating necessary directories etc. This role runs on the provisioner host.
 * `installer` - Actually drives the OpenShift Installer. This role runs on the provisioner host.
 
 Scale Up worker roles
@@ -130,82 +148,8 @@ The tree structure is shown below:
     │   │   └── node_inv.j2
     │   └── vars
     │       └── main.yml
-    ├── installer
-    │   ├── defaults
-    │   │   └── main.yml
-    │   ├── files
-    │   │   ├── customize_filesystem
-    │   │   │   ├── master
-    │   │   │   └── worker -> master
-    │   │   ├── filetranspile-1.1.1.py
-    │   │   └── manifests
-    │   ├── handlers
-    │   │   └── main.yml
-    │   ├── library
-    │   │   └── podman_container.py
-    │   ├── meta
-    │   │   └── main.yml
-    │   ├── tasks
-    │   │   ├── 10_get_oc.yml
-    │   │   ├── 15_disconnected_registry_create.yml
-    │   │   ├── 15_disconnected_registry_existing.yml
-    │   │   ├── 20_extract_installer.yml
-    │   │   ├── 23_rhcos_image_paths.yml
-    │   │   ├── 24_rhcos_image_cache.yml
-    │   │   ├── 25_create-install-config.yml
-    │   │   ├── 30_create_metal3.yml
-    │   │   ├── 40_create_manifest.yml
-    │   │   ├── 50_extramanifests.yml
-    │   │   ├── 55_customize_filesystem.yml
-    │   │   ├── 59_cleanup_bootstrap.yml
-    │   │   ├── 60_deploy_ocp.yml
-    │   │   ├── 70_cleanup_sub_man_registeration.yml
-    │   │   └── main.yml
-    │   ├── templates
-    │   │   ├── chrony.conf.j2
-    │   │   ├── etc-chrony.conf.j2
-    │   │   ├── httpd_conf.j2
-    │   │   ├── install-config-appends.j2
-    │   │   ├── install-config.j2
-    │   │   ├── magic.j2
-    │   │   └── metal3-config.j2
-    │   ├── tests
-    │   │   ├── inventory
-    │   │   └── test.yml
-    │   └── vars
-    │       └── main.yml
     ├── network-discovery
     │   └── tasks
-    │       └── main.yml
-    ├── node-prep
-    │   ├── defaults
-    │   │   └── main.yml
-    │   ├── handlers
-    │   │   └── main.yml
-    │   ├── library
-    │   │   └── nmcli.py
-    │   ├── meta
-    │   │   └── main.yml
-    │   ├── tasks
-    │   │   ├── 100_power_off_cluster_servers.yml
-    │   │   ├── 10_validation.yml
-    │   │   ├── 15_validation_disconnected_registry.yml
-    │   │   ├── 20_sub_man_register.yml
-    │   │   ├── 30_req_packages.yml
-    │   │   ├── 40_bridge.yml
-    │   │   ├── 45_networking_facts.yml
-    │   │   ├── 50_modify_sudo_user.yml
-    │   │   ├── 60_enabled_services.yml
-    │   │   ├── 70_enabled_fw_services.yml
-    │   │   ├── 80_libvirt_pool.yml
-    │   │   ├── 90_create_config_install_dirs.yml
-    │   │   └── main.yml
-    │   ├── templates
-    │   │   └── dir.xml.j2
-    │   ├── tests
-    │   │   ├── inventory
-    │   │   └── test.yml
-    │   └── vars
     │       └── main.yml
     ├── prepare-kni
     │   └── tasks

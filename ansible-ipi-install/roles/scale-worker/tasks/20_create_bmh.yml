@@ -1,3 +1,20 @@
+- name: Create network config secret for workers
+  template:
+    dest: "{{ scaling_dir }}/{{ item.host_name }}-network-config-secret.yaml"
+    src: bare-metal-network-config-secret.yaml.j2
+  loop: "{{ scale_worker_node.nodes }}"
+  loop_control:
+    extended: yes
+
+- name: Apply network config secret for workers
+  environment:
+    KUBECONFIG: "{{ kubeconfig_file }}"
+  shell: |
+    oc apply -f {{ scaling_dir }}/{{ item.host_name }}-network-config-secret.yaml
+  loop: "{{ scale_worker_node.nodes }}"
+  loop_control:
+    extended: yes
+
 - name: Create BareMetalHost definition file for new worker
   template:
     dest: "{{ scaling_dir }}/{{ item.host_name }}-bmh.yaml"

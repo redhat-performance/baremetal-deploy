@@ -13,7 +13,12 @@ spec:
   bootMACAddress: "{{ item.prov_mac }}"
 {% if bootmode is defined and bootmode == 'legacy' %}
   bootMode: legacy
-{% endif %}  
+{% endif %}
+{% if worker_network_config_template is defined %}
+  networkData: 
+    name: "{{ item.host_name }}-network-config-secret"
+    namespace: "openshift-machine-api"
+{% endif %}
   userData:
     name: worker-user-data
     namespace: openshift-machine-api

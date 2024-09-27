@@ -2,13 +2,14 @@
 
 aliases:
   approvers:
+    - derekhiggins
     - karmab
     - davidvossel
     - rlopez133
     - iranzo
   code-reviewers:
+    - derekhiggins
     - karmab
-    - e-minguez
     - davidvossel
     - rlopez133
     - abays
@@ -25,6 +26,9 @@ aliases:
     - simon3z
     - SchSeba
     - fedepaol
+    - Tal-or
+    - marioferh
+    - jlojosnegros
   cnf-approvers:
     - MarSik
     - simon3z
@@ -33,7 +37,7 @@ aliases:
     - fromanirh
     - cynepco3hahue
   dit-reviewers:
+    - derekhiggins
     - rlopez133
-    - directedsoul1
     - iranzo
     - johnwilkins

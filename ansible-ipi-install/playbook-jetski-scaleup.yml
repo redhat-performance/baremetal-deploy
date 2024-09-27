@@ -27,6 +27,7 @@
         - supermicro_nodes
         - ocp_deploying_node_content
         - nondeploying_worker_nodes_content
+        - worker_network_config_template
         - quit_play
         
 - hosts: provisioner

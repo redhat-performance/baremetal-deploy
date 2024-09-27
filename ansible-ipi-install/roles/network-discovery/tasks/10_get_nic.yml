@@ -1,0 +1,13 @@
+- name: set network facts
+  set_fact:
+    nic_dict: "{{ vars['ansible_' + item] }}"
+
+- name: Get the bm interface
+  set_fact:
+    pub_nic: "{{ item }}"
+  when: nic_dict.macaddress is defined and nic_dict.type == "ether" and nic_dict.macaddress == bm_mac
+
+- name: Get the provisioning interface
+  set_fact:
+    prov_nic: "{{ item }}"
+  when: nic_dict.macaddress is defined and nic_dict.type == "ether" and nic_dict.macaddress == prov_mac

@@ -1,5 +1,5 @@
 ---
-rhel_required_version: 8.4
+rhel_required_version: 8.9
 rhel_foreman_version: 8.2
 dns_server: "{{ '10.11.5.19' if lab_name == 'scale' else '10.19.96.1' }}"
 alias:
@@ -30,43 +30,70 @@ scale:
       1029p:
         pub_nic: eno1
         prov_nic: ens2f1
+        bm_nic: ens2f2
+        bm_nic_2: ens2f3
       1029u:
         pub_nic: eno1
+        bm_nic: ens2f0
+        bm_nic_2: ens2f1
       6048r:
         pub_nic: eno1
         prov_nic: ens4s0f1
+        bm_nic: enp131s0f0
+        bm_nic_2: enp131s0f1
       5039ms:
         pub_nic: enp2s0f0
         prov_nic: enp1s0f1
+        bm_nic: enp2s0f1
       6049p:
         pub_nic: ens5f0
         prov_nic: ens3f1
+        bm_nic: ens2f0
+        bm_nic_2: ens2f0
       6018r:
         pub_nic: eno1
         prov_nic: enp4s0f1
+        bm_nic: enp4s0f2
+        bm_nic_2: enp4s0f3
     dell:
       r620:
         pub_nic: eno3
         prov_nic: enp66s0f3
+        bm_nic: eno1
+        bm_nic_2: eno2
       r630:
         pub_nic: enp3s0f0
         prov_nic: eno2
+        bm_nic: eno3
+        bm_nic_2: eno4
       r730xd:
         pub_nic: em3
         prov_nic: em2
-      r720xd:
-        pub_nic: em3
-        prov_nic: p4p2
+        bm_nic: enp130s0f0
+        bm_nic_2: enp130s0f1
+      r750xd:
+        pub_nic: eno12399np0
+        prov_nic: ens3f1
+        bm_nic: ens6f0
+        bm_nic_2: ens6f1
       r930:
         pub_nic: em3
         prov_nic: eno2
+        bm_nic: enp10s0f0
+        bm_nic_2: enp10s0f1
       fc640:
         pub_nic: eno1
         prov_nic: ens2f0
+        bm_nic: ens2f1
+        bm_nic_2: ens2f1
       r640:
         pub_nic: eno1np0
         prov_nic: ens1f1
-        prov_nic_f04: ens3f1
+        bm_nic: ens2f0np0
+        bm_nic_2: eno2np1
+        prov_nic_f18: ens3f1
       r650:
         pub_nic: eno12399np0
         prov_nic: ens1f1
+        bm_nic: ens2f0np0
+        bm_nic_2: eno12409np1

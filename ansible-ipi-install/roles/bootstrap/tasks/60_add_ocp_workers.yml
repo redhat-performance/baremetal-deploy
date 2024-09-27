@@ -1,14 +1,19 @@
 - name: add workers to inventory file
   add_host:
-    hostname: worker-{{ item }}
-    name: worker-{{ item }}
+    hostname: worker-{{ node_index }}
+    name: worker-{{ node_index }}
     groups: workers
     role: worker
-    ipmi_user: "{{ lab_ipmi_user }}"
-    ipmi_password: "{{ lab_ipmi_password }}"
-    ipmi_address: "{{ worker_mgmts[item | int] }}"
+    ipmi_user: "{{ node_item.pm_user }}"
+    ipmi_password: "{{ node_item.pm_password }}"
+    ipmi_address: "{{ node_item.pm_addr }}"
     ipmi_port: 623
-    provision_mac: "{{ worker_prov_macs[item | int] }}"
+    provision_mac: "{{ node_item.prov_mac }}"
+    provision_nic: "{{ node_item.prov_nic }}"
+    baremetal_nic: "{{ node_item.bm_nic }}"
     hardware_profile: "unknown"
     poweroff: true
-  with_sequence: start=0 end={{ worker_mgmts | length - 1  if worker_mgmts|length > 0  }}
+  loop: "{{ deploying_worker_nodes_content['nodes'] }}"
+  loop_control:
+    index_var: node_index
+    loop_var: node_item 

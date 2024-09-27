@@ -22,7 +22,7 @@
 - name: Download ocpinv.json
   block:
     - uri:
-        url: "{{ alias.lab_url }}/cloud/{{ cloud_name }}_ocpinventory.json"
+        url: "{{ alias.lab_url }}/instack/{{ cloud_name }}_ocpinventory.json"
         return_content: yes
       register: response
     
@@ -33,7 +33,7 @@
 - name: Download ocpinv.json
   block:
     - uri:
-        url: "{{ scale.lab_url }}/cloud/{{ cloud_name }}_ocpinventory.json"
+        url: "{{ scale.lab_url }}/instack/{{ cloud_name }}_ocpinventory.json"
         return_content: yes
       register: response
     
@@ -213,3 +213,18 @@
 - name: set ocp_nondeplopyed_node_content
   set_fact:
     nondeploying_worker_nodes_content: "{{ ocp_nondeployed_node_content | combine({'nodes': ocp_nondeployed_node_content.nodes|difference(scale_worker_node.nodes)}, recursive=True) }}"
+
+- name: "Check ansible collection path - redhatci.ocp"
+  community.general.ansible_galaxy_install:
+    type: collection
+    name: redhatci.ocp
+  register: out
+
+- set_fact:
+    collection_dir: "{{ item.key }}"
+  with_dict: "{{ out.installed_collections }}"
+  when: "item.value != {}"
+
+- name: Set manifest directory path
+  set_fact:
+    worker_network_config_template: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/worker_nmstate_file.yaml"

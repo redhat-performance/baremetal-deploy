@@ -18,7 +18,7 @@
 - name: Download ocpinv.json
   block:
     - uri:
-        url: "{{ alias.lab_url }}/cloud/{{ cloud_name }}_ocpinventory.json"
+        url: "{{ alias.lab_url }}/instack/{{ cloud_name }}_ocpinventory.json"
         return_content: yes
       register: response
     
@@ -29,7 +29,7 @@
 - name: Download ocpinv.json
   block:
     - uri:
-        url: "{{ scale.lab_url }}/cloud/{{ cloud_name }}_ocpinventory.json"
+        url: "{{ scale.lab_url }}/instack/{{ cloud_name }}_ocpinventory.json"
         return_content: yes
       register: response
     
@@ -348,12 +348,12 @@
   with_items:
     - "{{master_fqdns }}"
 
-- name: Fail on different rack(f04)
+- name: Fail on different rack(f18)
   fail:
-    msg: If one of the master nodes is in rack f04, all of them need to be in the same rack
+    msg: If one of the master nodes is in rack f18, all of them need to be in the same rack
   when: 
     - racks is defined
-    - "'f04' in racks"
+    - "'f18' in racks"
     - "racks | unique |  length > 1"
 
 - name: Fail when worker nodes have R620s and R630s

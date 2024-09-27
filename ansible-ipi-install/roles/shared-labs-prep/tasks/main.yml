@@ -73,9 +73,7 @@
     ifname: baremetal
     autoconnect: yes
     stp: off
-    ip4_method: manual
     ip4: "{{ extcidrnet | next_nth_usable(1) }}/{{ extcidrnet | ipaddr('prefix') }}"
-    ip6_method: disabled
     state: present
   become: yes
   when: not ipv6_enabled|bool or ipv4_baremetal|bool
@@ -87,11 +85,9 @@
     ifname: baremetal
     autoconnect: yes
     stp: off
-    ip4_method: manual
     ip4: "{{ extcidrnet | next_nth_usable(1) }}/{{ extcidrnet | ipaddr('prefix') }}"
     state: present
     ip6: "{{ extcidrnet6 | next_nth_usable(1) }}/{{ extcidrnet6 | ipaddr('prefix') }}"
-    ip6_method: manual
   become: yes
   when: ipv6_enabled|bool and dualstack_baremetal|bool
 
@@ -117,7 +113,7 @@
   become: yes
 
 - name: Set MTU
-  nmcli:
+  redhatci.ocp.nmcli:  #setting MTU using upstream nmcli library is failing so using local module
     conn_name: "{{ pub_nic }}"
     type: ethernet
     mtu: "{{ 9000 if jumbo_mtu else 1500 }}"
@@ -278,9 +274,24 @@
 
 - name: Create Manifest folder
   block:
+    - name: "Check ansible collection path - redhatci.ocp"
+      community.general.ansible_galaxy_install:
+        type: collection
+        name: redhatci.ocp
+      register: out
+
+    - set_fact:
+        collection_dir: "{{ item.key }}"
+      with_dict: "{{ out.installed_collections }}"
+      when: "item.value != {}"
+
     - name: Set manifest directory path
       set_fact:
-        manifest_path: "{{ playbook_dir }}/roles/installer/files/openshift/"
+        manifest_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/openshift/"
+        customize_extramanifestsopenshift_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/openshift/"
+        customize_extramanifests_path: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/manifests/"
+        master_network_config_template: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/master_nmstate_file.yaml"
+        worker_network_config_template: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/worker_nmstate_file.yaml"
       
     - name: Clean up any existing manifest content
       file:
@@ -331,6 +342,18 @@
         - "ocp4-lab.machineconfig.yml.j2"
       when:
         - sctp | bool
+
+    - name: Copy master nmstate file
+      template:
+        src: "ocp4-lab.nmstate.conf.j2"
+        dest: "{{ collection_dir }}/redhatci/ocp/roles/installer/files/{{ node_item }}_nmstate_file.yaml"
+        mode: 0644
+        force: true
+      with_items:
+        - "master"
+        - "worker"
+      loop_control:
+          loop_var: node_item
 
   delegate_to: localhost
 
