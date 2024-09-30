@@ -33,8 +33,8 @@
     ansible_eligible_interfaces: "{{ ansible_eligible_interfaces | reject('search', '[.]') | list }}"
 
 - include_tasks: 10_get_nic.yml
-   with_items:
-     - "{{ ansible_eligible_interfaces }}"
+  with_items:
+    - "{{ ansible_eligible_interfaces }}"
 
 - name: Set lab_pub_nics for master
   set_fact:
